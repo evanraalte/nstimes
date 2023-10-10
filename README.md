@@ -1,6 +1,6 @@
 # `nstimes`
 
-Find your next train
+Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.
 
 **Usage**:
 
