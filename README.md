@@ -16,10 +16,12 @@ $ nstimes [OPTIONS] COMMAND [ARGS]...
 
 **Commands**:
 
-* `journey`
+* `journey`: Provide train type, platform and departure...
 * `update-stations-json`
 
 ## `nstimes journey`
+
+Provide train type, platform and departure times of an A -> B journey
 
 **Usage**:
 
