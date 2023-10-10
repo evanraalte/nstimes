@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from os import environ
+import os
 import typer
 from typing_extensions import Annotated
 import httpx
@@ -8,7 +9,8 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 
 DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 MINUTES_NEEDED = 0
-STATIONS_FILE = "nstimes/stations.json"
+SCRIPT_DIR = os.path.dirname(__file__)
+STATIONS_FILE = os.path.join(SCRIPT_DIR,"stations.json")
 
 app = typer.Typer(
     help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool."
