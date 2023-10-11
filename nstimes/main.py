@@ -93,7 +93,7 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
         trip = trip["legs"][0]
         origin = trip["origin"]
 
-        track = int(origin.get('actualTrack', origin.get('plannedTrack', -1)))
+        track = origin.get('actualTrack', origin.get('plannedTrack', "?"))
 
         planned_departure_time = datetime.strptime(origin['plannedDateTime'],DATETIME_FORMAT_STRING)
 
