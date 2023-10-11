@@ -1,3 +1,8 @@
+
+[![PyPI Version](https://img.shields.io/pypi/v/nstimes.svg)](https://pypi.org/project/nstimes)
+![Python Version](https://img.shields.io/badge/Python-3.10%20%E2%86%92%203.12-blue)
+![CI/CD](https://github.com/evanraalte/nstimes/actions/workflows/actions.yml/badge.svg)
+
 # `nstimes`
 
 Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.
