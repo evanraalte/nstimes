@@ -5,6 +5,11 @@ from typing_extensions import Annotated
 import httpx
 import json
 from importlib.metadata import version
+from rich import print
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
 
 DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 MINUTES_NEEDED = 0
@@ -12,7 +17,8 @@ SCRIPT_DIR = os.path.dirname(__file__)
 STATIONS_FILE = os.path.join(SCRIPT_DIR,"stations.json")
 
 app = typer.Typer(
-    help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool."
+    help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.",
+    pretty_exceptions_show_locals=os.getenv("SHOW_LOCALS"),
 )
 
 @app.command(hidden=True)
@@ -55,7 +61,8 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
             'Cache-Control': 'no-cache',
             'Ocp-Apim-Subscription-Key': token
         })
-
+        if response.status_code != 200:
+            typer.Exit(1)
     trips = response.json()["trips"]
     for trip in trips:
         trip = trip["legs"][0]
@@ -82,13 +89,14 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
         time_left = dep_time - datetime.now(tz=dep_time.tzinfo)
         time_left_minutes = int(time_left.total_seconds() / 60)
 
+
+        if time_left_minutes < MINUTES_NEEDED:
+            continue
+
         dep_string = f"{dep_time.strftime('%H:%M')}"
         if delay_minutes > 0:
              dep_string = f"[bold red]{dep_string}[/bold red]"
              time_left_minutes = f"[bold red]{time_left_minutes}[/bold red]"
-
-        if time_left_minutes < MINUTES_NEEDED:
-            continue
 
         print(f"{train_type} p.{track} in {time_left_minutes} min ({dep_string})")
 
