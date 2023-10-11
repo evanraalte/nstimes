@@ -76,7 +76,7 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
             delay = timedelta(0)
         else:
             raise Exception("No departure time!")
-        
+
         train_type = trip['product']['categoryCode']
         delay_minutes = int(delay.total_seconds() / 60)
         time_left = dep_time - datetime.now(tz=dep_time.tzinfo)
