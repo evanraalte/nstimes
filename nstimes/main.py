@@ -48,8 +48,8 @@ def complete_name(incomplete: str):
 
 
 @app.command(help="Provide train type, platform and departure times of an A -> B journey")
-def journey(start: Annotated[str, typer.Option(help="Start station", shell_complete=complete_name)],
-         end: Annotated[str, typer.Option(help="Stop station", shell_complete=complete_name)],
+def journey(start: Annotated[str, typer.Option(help="Start station", autocompletion=complete_name)],
+         end: Annotated[str, typer.Option(help="Stop station", autocompletion=complete_name)],
          token: Annotated[str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")]):
     with open(STATIONS_FILE, "r",encoding="utf-8") as file:
         uic_mapping = json.load(file)
