@@ -57,10 +57,14 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
     uic_end = uic_mapping[end]
     print(f"Journeys from {start} -> {end}")
     with httpx.Client() as client:
-        response = client.get(url=f"https://gateway.apiportal.ns.nl/reisinformatie-api/api/v3/trips?originUicCode={uic_start}&destinationUicCode={uic_end}",headers={
-            'Cache-Control': 'no-cache',
-            'Ocp-Apim-Subscription-Key': token
-        })
+        try:
+            response = client.get(url=f"https://gateway.apiportal.ns.nl/reisinformatie-api/api/v3/trips?originUicCode={uic_start}&destinationUicCode={uic_end}",headers={
+                'Cache-Control': 'no-cache',
+                'Ocp-Apim-Subscription-Key': token
+            })
+        except httpx.ReadTimeout:
+            print("Request timed out (which can happen)")
+            typer.Exit(0)
         if response.status_code != 200:
             typer.Exit(1)
     trips = response.json()["trips"]
