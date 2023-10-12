@@ -1,9 +1,15 @@
 import json
-import pytest
-from typer.testing import CliRunner
 from importlib.metadata import version
-from nstimes.main import STATIONS_FILE, app
-from hypothesis import Verbosity, given, settings, strategies as st
+
+import pytest
+from hypothesis import given
+from hypothesis import settings
+from hypothesis import strategies as st
+from hypothesis import Verbosity
+from typer.testing import CliRunner
+
+from nstimes.main import app
+from nstimes.main import STATIONS_FILE
 
 runner = CliRunner()
 
@@ -23,15 +29,23 @@ def test_app_gets_train_times():
 
 def test_app_gets_train_times_table():
     result = runner.invoke(
-        app, ["journey", "--start", "Amersfoort Centraal", "--end", "Utrecht Centraal", "--printer", "table"]
+        app,
+        [
+            "journey",
+            "--start",
+            "Amersfoort Centraal",
+            "--end",
+            "Utrecht Centraal",
+            "--printer",
+            "table",
+        ],
     )
     assert result.exit_code == 0
 
 
-
 @st.composite
 def two_different_stations_strategy(draw):
-    with open(STATIONS_FILE, "r",encoding="utf-8") as file:
+    with open(STATIONS_FILE, "r", encoding="utf-8") as file:
         uic_mapping = json.load(file)
     station_names = list(uic_mapping.keys())
     name1 = draw(st.sampled_from(station_names))
@@ -46,9 +60,7 @@ def two_different_stations_strategy(draw):
 def test_app_gets_random_train_times(pair):
     station1, station2 = pair
     assert station1 != station2
-    result = runner.invoke(
-        app, ["journey", "--start", station1, "--end", station2]
-    )
+    result = runner.invoke(app, ["journey", "--start", station1, "--end", station2])
     assert result.exit_code == 0
     lines = result.stdout.splitlines()
     for line in lines:

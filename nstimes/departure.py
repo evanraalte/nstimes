@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
-from rich.table import Table
 
+from rich.table import Table
 
 
 @dataclass
@@ -22,5 +22,7 @@ class Departure:
 
     @property
     def time_left_minutes(self) -> int:
-        time_left = self.actual_departure_time - datetime.now(tz=self.actual_departure_time.tzinfo)
+        time_left = self.actual_departure_time - datetime.now(
+            tz=self.actual_departure_time.tzinfo
+        )
         return int(time_left.total_seconds() / 60)
