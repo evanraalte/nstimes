@@ -1,15 +1,14 @@
 from datetime import datetime
+from enum import Enum
 import os
 import typer
 from typing_extensions import Annotated
 import httpx
 import json
 from importlib.metadata import version
-from rich import print
 from dotenv import load_dotenv
-from rich.table import Table, Column
-from rich.console import Console
-from nstimes.types.departure import Departure
+from nstimes.printers import ConsolePrinter, ConsoleTablePrinter, Printer
+from nstimes.departure import Departure
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -20,6 +19,15 @@ SCRIPT_DIR = os.path.dirname(__file__)
 STATIONS_FILE = os.path.join(SCRIPT_DIR,"stations.json")
 DATE_FORMAT = '%d-%m-%Y'
 TIME_FORMAT = '%H:%M'
+
+class PrinterChoice(str, Enum):
+    table = "table"
+    ascii = "ascii"
+
+printers = {
+    "table" : ConsoleTablePrinter,
+    "ascii": ConsolePrinter,
+}
 
 def convert_to_rfc3339(time: str, date: str) -> str:
     datetime_obj = datetime.strptime(f"{date} {time}", f'{DATE_FORMAT} {TIME_FORMAT}')
@@ -85,8 +93,10 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
             token: Annotated[str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")],
             time: Annotated[str, typer.Option(help=f"Time to departure ({TIME_FORMAT})")]= datetime.now().strftime('%H:%M'),
             date: Annotated[str, typer.Option(help=f"Date to departure ({DATE_FORMAT})")] = datetime.now().strftime('%d-%m-%Y'),
-            table: Annotated[bool, typer.Option("--print-table", help="Print table instead of text")] = False
+            printer: PrinterChoice = "ascii"
          ):
+
+    printer: Printer = printers[printer]()
 
     uic_mapping = get_uic_mapping()
 
@@ -99,15 +109,8 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
 
     trips = response.json()["trips"]
 
-    header = f"Journeys from {start} -> {end} at {date} {time}"
-    if table:
-        table = Table(Column("Train", justify="left"),
-                      Column("Platform", justify="right"),
-                      Column("Leaves in", justify="right"),
-                      Column("Departure time", justify="right"),
-                      title=header)
-    else:
-        buf = header + "\n"
+    printer.set_title(f"Journeys from {start} -> {end} at {date} {time}")
+
     for trip in trips:
         trip = trip["legs"][0]
         origin = trip["origin"]
@@ -127,14 +130,9 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
                               planned_departure_time=planned_departure_time,
                               actual_departure_time=actual_departure_time)
         if departure.time_left_minutes >= 0:
-            if table:
-                departure.add_row_to_table(table)
-            else:
-                buf +=f"{departure}\n"
-    if table:
-        Console().print(table)
-    else:
-        print(buf)
+            printer.add_departure(departure)
+
+    printer.generate_output()
 
 def version_callback(value: bool):
     if value:
