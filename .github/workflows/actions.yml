@@ -44,10 +44,11 @@ jobs:
     - name: Install the project dependencies
       run: poetry install
     - name: Run the automated tests (ignore deprecation errors )
-      run: poetry run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=app tests/ | tee pytest-coverage.txt
+      run: poetry run pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=nstimes tests/ | tee pytest-coverage.txt
       env:
         NS_API_TOKEN: ${{ secrets.NS_API_TOKEN }}
     - name: Pytest coverage comment
+      if: ${{ matrix.python-version }} == "3.11"
       uses: MishaKav/pytest-coverage-comment@main
       with:
         pytest-coverage-path: ./pytest-coverage.txt
