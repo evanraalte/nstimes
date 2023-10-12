@@ -33,9 +33,11 @@ class Departure:
     def add_row_to_table(self, table: Table):
         act_dep_time_str = self.planned_departure_time.strftime('%H:%M')
         delay_str = "" if self.delay_minutes == 0 else red(f"+{self.delay_minutes}")
+
         table.add_row(self.train_type, cyan(self.platform), f"{cyan(self.time_left_minutes)} min", f"{green(act_dep_time_str)}{delay_str}")
 
     def __str__(self):
         act_dep_time_str = self.planned_departure_time.strftime('%H:%M')
-        delay_str = "" if self.delay_minutes == 0 else red(self.delay_minutes)
+        delay_str = "" if self.delay_minutes == 0 else red(f"+{self.delay_minutes}")
+
         return f"{self.train_type:<3s} p.{self.platform:>3s} in {self.time_left_minutes:02d} min ({act_dep_time_str}{delay_str})"
