@@ -93,7 +93,7 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
             token: Annotated[str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")],
             time: Annotated[str, typer.Option(help=f"Time to departure ({TIME_FORMAT})")]= datetime.now().strftime('%H:%M'),
             date: Annotated[str, typer.Option(help=f"Date to departure ({DATE_FORMAT})")] = datetime.now().strftime('%d-%m-%Y'),
-            printer: PrinterChoice = "ascii"
+            printer: PrinterChoice = PrinterChoice.ascii.value
          ):
 
     printer: Printer = printers[printer]()
