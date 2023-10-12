@@ -7,13 +7,13 @@ from rich import print
 
 class Printer(Protocol):
     def generate_output(self):
-        pass
+        """generates output in the console"""
 
     def set_title(self, title: str):
-        pass
+        """Sets the title of the generated output"""
 
     def add_departure(self, departure: Departure):
-        pass
+        """adds a row to the departures"""
 
 def red(text):
     return f"[bold red]{text}[/bold red]"

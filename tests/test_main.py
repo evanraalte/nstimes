@@ -21,6 +21,13 @@ def test_app_gets_train_times():
     assert result.exit_code == 0
 
 
+def test_app_gets_train_times_table():
+    result = runner.invoke(
+        app, ["journey", "--start", "Amersfoort Centraal", "--end", "Utrecht Centraal", "--printer", "table"]
+    )
+    assert result.exit_code == 0
+
+
 
 @st.composite
 def two_different_stations_strategy(draw):
@@ -31,7 +38,6 @@ def two_different_stations_strategy(draw):
     remaining_names = [name for name in station_names if name != name1]
     name2 = draw(st.sampled_from(remaining_names))
     return (name1, name2)
-
 
 
 @pytest.mark.skip("Too long")

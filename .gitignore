@@ -5,3 +5,5 @@ __pycache__
 .coverage
 pytest-coverage.txt
 pytest.xml
+htmlcov
+.vscode/settings.json
