@@ -1,2 +1,2 @@
 #! /bin/bash
-poetry run pytest --cov-report html --cov=nstimes tests/
+poetry run pytest -W ignore::DeprecationWarning --cov-report html --cov=nstimes tests/

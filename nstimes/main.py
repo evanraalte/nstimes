@@ -156,7 +156,7 @@ def journey(
             planned_departure_time=planned_departure_time,
             actual_departure_time=actual_departure_time,
         )
-        if departure.time_left_minutes >= 0:
+        if departure.time_left_minutes() >= 0:
             printer.add_departure(departure)
 
     printer.generate_output()
