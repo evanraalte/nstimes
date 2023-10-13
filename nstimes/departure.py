@@ -20,9 +20,6 @@ class Departure:
         delay = self.actual_departure_time - self.planned_departure_time
         return int(delay.total_seconds() / 60)
 
-    @property
-    def time_left_minutes(self) -> int:
-        time_left = self.actual_departure_time - datetime.now(
-            tz=self.actual_departure_time.tzinfo
-        )
+    def time_left_minutes(self, reference_time=datetime.now()) -> int:
+        time_left = self.actual_departure_time - reference_time
         return int(time_left.total_seconds() / 60)
