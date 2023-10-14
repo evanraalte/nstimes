@@ -50,11 +50,13 @@ jobs:
       uses: orgoro/coverage@v3.1
       with:
           coverageFile: coverage.xml
-          token: ${{ secrets.PR_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
     - name: Coverage Badge
+      if: ${{ matrix.python-version }} == "3.11"
       uses: tj-actions/coverage-badge-py@v2
 
     - name: Verify Changed files
+      if: ${{ matrix.python-version }} == "3.11"
       uses: tj-actions/verify-changed-files@v16
       id: verify-changed-files
       with:
@@ -72,5 +74,5 @@ jobs:
       if: steps.verify-changed-files.outputs.files_changed == 'true'
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.COVERAGE_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
         branch: ${{ github.ref }}
