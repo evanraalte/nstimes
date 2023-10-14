@@ -2,8 +2,6 @@ name: linting and tests
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 jobs:
   pre-commit:
@@ -44,6 +42,11 @@ jobs:
     - name: Install the project dependencies
       run: poetry install
     - name: Run the automated tests (ignore deprecation errors )
-      run: poetry run pytest
+      run: poetry run pytest -W ignore::DeprecationWarning --cov-report html --cov-report lcov --cov=nstimes tests/
       env:
         NS_API_TOKEN: ${{ secrets.NS_API_TOKEN }}
+    - name: Get Coverage
+      uses: orgoro/coverage@v3.1
+      with:
+          coverageFile: coverage.xml
+          token: ${{ secrets.PR_TOKEN }}
