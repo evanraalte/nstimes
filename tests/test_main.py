@@ -3,15 +3,16 @@ import tempfile
 from importlib.metadata import version
 from pathlib import Path
 
+import httpx
 import pytest
 from hypothesis import given
 from hypothesis import settings
 from hypothesis import Verbosity
+from pytest_httpx import HTTPXMock
 from typer.testing import CliRunner
 
 from nstimes.main import app
 from nstimes.main import complete_name
-from nstimes.main import STATIONS_FILE
 from tests.strategies import two_different_stations_strategy
 
 runner = CliRunner()
@@ -76,27 +77,55 @@ def test_complete_name():
     assert list(complete_name(lut, "z")) == []
 
 
-def test_update_stations():
-    # Create a temporary directory
+def test_update_stations_writes_file():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_json_file = Path(temp_dir) / "test.json"
 
-        # Invoke the 'update-stations-json' command with the temporary file path
         result = runner.invoke(
             app, ["update-stations-json", "--path", str(temp_json_file)]
         )
 
-        # Assert that the command ran successfully (exit code is 0)
         assert result.exit_code == 0
 
-        # Assert that the temporary JSON file was created
         assert temp_json_file.exists()
 
-        # Assert that the temporary JSON file is a valid JSON file
         with temp_json_file.open("r") as json_file:
             data = json.load(json_file)
             assert isinstance(data, dict)
             for key, value in data.items():
                 assert isinstance(key, str)
                 assert isinstance(value, str)
-    # The temporary directory and its contents will be automatically cleaned up
+
+
+def test_update_stations_bad_response_does_not_write_file(httpx_mock: HTTPXMock):
+    httpx_mock.add_response(method="GET", status_code=400)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_json_file = Path(temp_dir) / "test.json"
+
+        result = runner.invoke(
+            app, ["update-stations-json", "--path", str(temp_json_file)]
+        )
+
+        assert result.exit_code == 1
+        assert not temp_json_file.exists()
+
+
+def test_update_stations_time_out_does_not_write_file_exits_2(httpx_mock: HTTPXMock):
+    httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_json_file = Path(temp_dir) / "test.json"
+
+        result = runner.invoke(
+            app, ["update-stations-json", "--path", str(temp_json_file)]
+        )
+
+        assert result.exit_code == 2
+        assert not temp_json_file.exists()
+
+
+def test_exception_raising(httpx_mock: HTTPXMock):
+    httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
+
+    with httpx.Client() as client:
+        with pytest.raises(httpx.ReadTimeout):
+            client.get("https://test_url")

@@ -63,10 +63,9 @@ def httpx_get(token, query_params, api: str):
             response.raise_for_status()
             return response
     except httpx.ReadTimeout:
-        print("Request timed out (which can happen)")
-        typer.Exit(0)
+        raise typer.Exit(2)
     except httpx.HTTPStatusError:
-        typer.Exit(1)
+        raise typer.Exit(1)
 
 
 @app.command(help="Generate stations lookup, should not be neccesary", hidden=True)
@@ -192,4 +191,4 @@ def main(
 
 
 if __name__ == "__main__":
-    app()
+    app()  # pragma: no cover
