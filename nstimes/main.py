@@ -1,3 +1,4 @@
+import functools
 import json
 import os
 from datetime import datetime
@@ -62,32 +63,28 @@ def httpx_get(token, query_params, api: str):
             response.raise_for_status()
             return response
     except httpx.ReadTimeout:
-        print("Request timed out (which can happen)")
-        typer.Exit(0)
+        raise typer.Exit(2)
     except httpx.HTTPStatusError:
-        typer.Exit(1)
+        raise typer.Exit(1)
 
 
-@app.command(hidden=True)
+@app.command(help="Generate stations lookup, should not be neccesary", hidden=True)
 def update_stations_json(
     token: Annotated[
         str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
-    ]
+    ],
+    path: Annotated[
+        str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
+    ] = STATIONS_FILE,
 ):
     query_params = {"countryCodes": "nl"}
     response = httpx_get(token=token, query_params=query_params, api="v2/stations")
     # get list of stations to uic code
     data = response.json()["payload"]
     uic_mapping = {d["namen"]["lang"]: d["UICCode"] for d in data}
-    with open(STATIONS_FILE, "w", encoding="utf-8") as file:
+    with open(path, "w", encoding="utf-8") as file:
         json.dump(uic_mapping, file)
-    return uic_mapping
-
-
-def complete_name(incomplete: str):
-    for name in get_uic_mapping():
-        if name.startswith(incomplete):
-            yield name
+    typer.Exit(0)
 
 
 def get_uic_mapping() -> dict[str, str]:
@@ -96,15 +93,26 @@ def get_uic_mapping() -> dict[str, str]:
     return uic_mapping
 
 
+def complete_name(lut: dict[str, str], incomplete: str):
+    for name in lut:
+        if name.startswith(incomplete):
+            yield name
+
+
+complete_station_name = lambda incomplete: complete_name(
+    lut=get_uic_mapping(), incomplete=incomplete
+)
+
+
 @app.command(
     help="Provide train type, platform and departure times of an A -> B journey"
 )
 def journey(
     start: Annotated[
-        str, typer.Option(help="Start station", autocompletion=complete_name)
+        str, typer.Option(help="Start station", autocompletion=complete_station_name)
     ],
     end: Annotated[
-        str, typer.Option(help="Stop station", autocompletion=complete_name)
+        str, typer.Option(help="Stop station", autocompletion=complete_station_name)
     ],
     token: Annotated[
         str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
@@ -160,12 +168,13 @@ def journey(
             printer.add_departure(departure)
 
     printer.generate_output()
+    typer.Exit(0)
 
 
 def version_callback(value: bool):
     if value:
         print(f"nstimes version: {version(__package__)}")
-        raise typer.Exit()
+        raise typer.Exit(0)
 
 
 @app.callback()
@@ -182,4 +191,4 @@ def main(
 
 
 if __name__ == "__main__":
-    app()
+    app()  # pragma: no cover
