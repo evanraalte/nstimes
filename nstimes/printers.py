@@ -85,7 +85,7 @@ class ConsoleTablePrinter:
         self.table.add_row(
             departure.train_type,
             cyan(departure.platform),
-            f"{cyan(departure.time_left_minutes)} min",
+            f"{cyan(departure.time_left_minutes())} min",
             f"{green(act_dep_time_str)}{delay_str}",
         )
 
