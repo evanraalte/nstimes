@@ -131,7 +131,7 @@ class PixelClockPrinter:
         try:
             response = httpx.post(self.url, data=payload)
             response.raise_for_status()
-        except httpx.ReadTimeout as exc:
+        except (httpx.ReadTimeout, httpx.ConnectError) as exc:
             print(f"Could not reach your clock, got: {exc}")
             raise typer.Exit(2)
         except httpx.HTTPStatusError as exc:
