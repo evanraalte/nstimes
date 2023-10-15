@@ -20,7 +20,7 @@ delay_strategy = st.integers(min_value=0, max_value=120)  # Adjust the range as 
 
 
 @st.composite
-def departure_strategy(draw):
+def departure_strategy(draw: st.DrawFn) -> Departure:
     planned = draw(time_strategy)
     time_difference_seconds = draw(st.integers(min_value=1, max_value=3600))
     actual = planned + timedelta(seconds=time_difference_seconds)
@@ -28,12 +28,12 @@ def departure_strategy(draw):
         train_type="SPR",
         platform="14b",
         planned_departure_time=planned,
-        actual_departure_time=actual,
+        actual_departure_time_init=actual,
     )
 
 
 @st.composite
-def two_different_stations_strategy(draw):
+def two_different_stations_strategy(draw: st.DrawFn) -> tuple[str, str]:
     with open(STATIONS_FILE, "r", encoding="utf-8") as file:
         uic_mapping = json.load(file)
     station_names = list(uic_mapping.keys())

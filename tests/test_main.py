@@ -18,20 +18,20 @@ from tests.strategies import two_different_stations_strategy
 runner = CliRunner()
 
 
-def test_app_version_is_correct():
+def test_app_version_is_correct() -> None:
     result = runner.invoke(app, ["--version"])
     assert result.exit_code == 0
     assert version("nstimes") in result.stdout
 
 
-def test_app_gets_train_times():
+def test_app_gets_train_times() -> None:
     result = runner.invoke(
         app, ["journey", "--start", "Amersfoort Centraal", "--end", "Utrecht Centraal"]
     )
     assert result.exit_code == 0
 
 
-def test_app_gets_train_times_table():
+def test_app_gets_train_times_table() -> None:
     result = runner.invoke(
         app,
         [
@@ -50,7 +50,7 @@ def test_app_gets_train_times_table():
 @pytest.mark.skip("Too long")
 @given(pair=two_different_stations_strategy())
 @settings(max_examples=10, deadline=None, verbosity=Verbosity.verbose)
-def test_app_gets_random_train_times(pair):
+def test_app_gets_random_train_times(pair: tuple[str, str]) -> None:
     station1, station2 = pair
     assert station1 != station2
     result = runner.invoke(app, ["journey", "--start", station1, "--end", station2])
@@ -62,7 +62,7 @@ def test_app_gets_random_train_times(pair):
         assert any(tt in line for tt in ["S", "ST", "SPR", "IC"])
 
 
-def test_complete_name():
+def test_complete_name() -> None:
     lut = {
         "apple": "fruit",
         "banana": "fruit",
@@ -77,7 +77,7 @@ def test_complete_name():
     assert list(complete_name(lut, "z")) == []
 
 
-def test_update_stations_writes_file():
+def test_update_stations_writes_file() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_json_file = Path(temp_dir) / "test.json"
 
@@ -97,7 +97,9 @@ def test_update_stations_writes_file():
                 assert isinstance(value, str)
 
 
-def test_update_stations_bad_response_does_not_write_file(httpx_mock: HTTPXMock):
+def test_update_stations_bad_response_does_not_write_file(
+    httpx_mock: HTTPXMock,
+) -> None:
     httpx_mock.add_response(method="GET", status_code=400)
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_json_file = Path(temp_dir) / "test.json"
@@ -110,7 +112,9 @@ def test_update_stations_bad_response_does_not_write_file(httpx_mock: HTTPXMock)
         assert not temp_json_file.exists()
 
 
-def test_update_stations_time_out_does_not_write_file_exits_2(httpx_mock: HTTPXMock):
+def test_update_stations_time_out_does_not_write_file_exits_2(
+    httpx_mock: HTTPXMock,
+) -> None:
     httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_json_file = Path(temp_dir) / "test.json"
@@ -123,7 +127,7 @@ def test_update_stations_time_out_does_not_write_file_exits_2(httpx_mock: HTTPXM
         assert not temp_json_file.exists()
 
 
-def test_exception_raising(httpx_mock: HTTPXMock):
+def test_exception_raising(httpx_mock: HTTPXMock) -> None:
     httpx_mock.add_exception(httpx.ReadTimeout("Unable to read within timeout"))
 
     with httpx.Client() as client:

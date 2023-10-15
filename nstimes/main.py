@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from enum import Enum
 from importlib.metadata import version
+from typing import Generator
 
 import httpx
 import typer
@@ -33,20 +34,13 @@ class PrinterChoice(str, Enum):
     pixelclock = "pixelclock"
 
 
-printers = {
-    "table": ConsoleTablePrinter,
-    "ascii": ConsolePrinter,
-    "pixelclock": PixelClockPrinter,
-}
-
-
 def convert_to_rfc3339(time: str, date: str) -> str:
     datetime_obj = datetime.strptime(f"{date} {time}", f"{DATE_FORMAT} {TIME_FORMAT}")
     rfc3339_str = datetime_obj.isoformat()
     return rfc3339_str
 
 
-def get_headers(token):
+def get_headers(token: str) -> dict[str, str]:
     return {"Cache-Control": "no-cache", "Ocp-Apim-Subscription-Key": token}
 
 
@@ -56,7 +50,7 @@ app = typer.Typer(
 )
 
 
-def httpx_get(token, query_params, api: str):
+def httpx_get(token: str, query_params: dict[str, str], api: str) -> httpx.Response:
     API_URL = "https://gateway.apiportal.ns.nl/reisinformatie-api/api"
     try:
         with httpx.Client() as client:
@@ -79,7 +73,7 @@ def update_stations_json(
     path: Annotated[
         str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
     ] = STATIONS_FILE,
-):
+) -> None:
     query_params = {"countryCodes": "nl"}
     response = httpx_get(token=token, query_params=query_params, api="v2/stations")
     # get list of stations to uic code
@@ -92,11 +86,11 @@ def update_stations_json(
 
 def get_uic_mapping() -> dict[str, str]:
     with open(STATIONS_FILE, "r", encoding="utf-8") as file:
-        uic_mapping = json.load(file)
+        uic_mapping: dict[str, str] = json.load(file)
     return uic_mapping
 
 
-def complete_name(lut: dict[str, str], incomplete: str):
+def complete_name(lut: dict[str, str], incomplete: str) -> Generator[str, None, None]:
     for name in lut:
         if name.startswith(incomplete):
             yield name
@@ -126,9 +120,17 @@ def journey(
     date: Annotated[
         str, typer.Option(help=f"Date to departure ({DATE_FORMAT})")
     ] = datetime.now().strftime("%d-%m-%Y"),
-    printer: PrinterChoice = PrinterChoice.ascii.value,
-):
-    printer: Printer = printers[printer]()
+    printer_choice: PrinterChoice = PrinterChoice.ascii,
+) -> None:
+    printer: None | ConsolePrinter | ConsoleTablePrinter | PixelClockPrinter = None
+    if printer_choice == PrinterChoice.ascii:
+        printer = ConsolePrinter()
+    elif printer_choice == PrinterChoice.table:
+        printer = ConsoleTablePrinter()
+    elif printer_choice == PrinterChoice.pixelclock:
+        printer = PixelClockPrinter()
+    else:
+        raise typer.Exit(1)
 
     uic_mapping = get_uic_mapping()
 
@@ -165,7 +167,7 @@ def journey(
             train_type=train_type,
             platform=track,
             planned_departure_time=planned_departure_time,
-            actual_departure_time=actual_departure_time,
+            actual_departure_time_init=actual_departure_time,
         )
         if departure.time_left_minutes() >= 0:
             printer.add_departure(departure)
@@ -174,7 +176,7 @@ def journey(
     typer.Exit(0)
 
 
-def version_callback(value: bool):
+def version_callback(value: bool) -> None:
     if value:
         print(f"nstimes version: {version(__package__)}")
         raise typer.Exit(0)
@@ -189,7 +191,7 @@ def main(
         is_eager=True,
         help="Print version info",
     ),
-):
+) -> None:
     return
 
 
