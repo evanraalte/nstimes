@@ -35,6 +35,7 @@ def test_departure_can_be_printed_as_table(departures):
 
 
 def test_set_title():
+    os.environ["PIXEL_CLOCK_IP"] = "something"
     for p in printers.values():
         printer = p()
         printer.set_title("Test")
