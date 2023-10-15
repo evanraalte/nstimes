@@ -37,8 +37,6 @@ echo -e "\nexport NS_API_TOKEN=****\n" | tee -a ~/.zshrc
 source ~/.zshrc # Reload shell
 ```
 
-
-
 # `nstimes`
 
 Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.
@@ -59,7 +57,7 @@ $ nstimes [OPTIONS] COMMAND [ARGS]...
 **Commands**:
 
 * `journey`: Provide train type, platform and departure...
-* `update-stations-json`
+* `update-stations-json`: Generate stations lookup
 
 ## `nstimes journey`
 
@@ -76,12 +74,14 @@ $ nstimes journey [OPTIONS]
 * `--start TEXT`: Start station  [required]
 * `--end TEXT`: Stop station  [required]
 * `--token TEXT`: Token to talk with the NS API  [env var: NS_API_TOKEN; required]
-* `--time TEXT`: Time to departure (%H:%M)  [default: 13:30]
-* `--date TEXT`: Date to departure (%d-%m-%Y)  [default: 12-10-2023]
-* `--print-table`: Print table instead of text
+* `--time TEXT`: Time to departure (%H:%M)  [default: 12:19]
+* `--date TEXT`: Date to departure (%d-%m-%Y)  [default: 15-10-2023]
+* `--printer [table|ascii|pixelclock]`: [default: ascii]
 * `--help`: Show this message and exit.
 
 ## `nstimes update-stations-json`
+
+Generate stations lookup, should not be neccesary
 
 **Usage**:
 
@@ -92,4 +92,5 @@ $ nstimes update-stations-json [OPTIONS]
 **Options**:
 
 * `--token TEXT`: Token to talk with the NS API  [env var: NS_API_TOKEN; required]
+* `--path TEXT`: Token to talk with the NS API  [env var: NS_API_TOKEN; default: /home/erik/dev/ns_cli/nstimes/stations.json]
 * `--help`: Show this message and exit.
