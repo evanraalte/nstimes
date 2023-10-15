@@ -44,7 +44,7 @@ $ nstimes journey [OPTIONS]
 * `--token TEXT`: Token to talk with the NS API  [env var: NS_API_TOKEN; required]
 * `--time TEXT`: Time to departure (%H:%M)  [default: 12:19]
 * `--date TEXT`: Date to departure (%d-%m-%Y)  [default: 15-10-2023]
-* `--printer [table|ascii|pixelclock]`: [default: ascii]
+* `--printer-choice [table|ascii|pixelclock]`: [default: ascii]
 * `--help`: Show this message and exit.
 
 ## `nstimes update-stations-json`
@@ -108,7 +108,7 @@ SPR p.  6 in 27 min (12:49)
 IC  p.  6 in 36 min (12:58)
 IC  p.  6 in 48 min (13:10)
 ```
-If you use the `--printer table` option it prints like:
+If you use the `--printer-choice table` option it prints like:
 ```bash
   Journeys from Amersfoort Centraal -> Utrecht
           Centraal at 15-10-2023 12:23

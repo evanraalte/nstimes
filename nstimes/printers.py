@@ -13,42 +13,44 @@ from nstimes.departure import Departure
 
 
 class Printer(Protocol):
-    def generate_output(self):
+    title: str = ""
+
+    def generate_output(self) -> None:
         """generates output in the console"""
 
-    def set_title(self, title: str):
+    def set_title(self, title: str) -> None:
         """Sets the title of the generated output"""
 
-    def add_departure(self, departure: Departure):
+    def add_departure(self, departure: Departure) -> None:
         """adds a row to the departures"""
 
 
-def red(text):
+def red(text: str | int) -> str:
     return f"[bold red]{text}[/bold red]"
 
 
-def cyan(text):
+def cyan(text: str | int) -> str:
     return f"[bold cyan]{text}[/bold cyan]"
 
 
-def green(text):
+def green(text: str | int) -> str:
     return f"[bold green]{text}[/bold green]"
 
 
 class ConsolePrinter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.buf = ""
         self.title = ""
 
-    def generate_output(self):
+    def generate_output(self) -> None:
         print(self.title)
         print("\n")
         print(self.buf)
 
-    def set_title(self, title: str):
+    def set_title(self, title: str) -> None:
         self.title = title
 
-    def add_departure(self, departure: Departure):
+    def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
         delay_str = (
             "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
@@ -58,7 +60,7 @@ class ConsolePrinter:
 
 
 class ConsoleTablePrinter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.table = Table(
             Column("Train", justify="left"),
             Column("Platform", justify="right"),
@@ -66,17 +68,17 @@ class ConsoleTablePrinter:
             Column("Departure time", justify="right"),
         )
 
-    def generate_output(self):
+    def generate_output(self) -> None:
         Console().print(self.table)
 
     @property
-    def title(self):
-        return self.table.title
+    def title(self) -> str:
+        return str(self.table.title)
 
-    def set_title(self, title: str):
+    def set_title(self, title: str) -> None:
         self.table.title = title
 
-    def add_departure(self, departure: Departure):
+    def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
         delay_str = (
             "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
@@ -91,7 +93,7 @@ class ConsoleTablePrinter:
 
 
 class PixelClockPrinter:
-    def generate_payload(self, departure: Departure):
+    def generate_payload(self, departure: Departure) -> str:
         return json.dumps(
             {
                 "text": [
@@ -107,17 +109,17 @@ class PixelClockPrinter:
             }
         )
 
-    def __init__(self):
+    def __init__(self) -> None:
         try:
             ip = os.environ["PIXEL_CLOCK_IP"]
         except KeyError:
             print("Can't initiate printer, please instantiate env var PIXEL_CLOCK_IP")
             raise typer.Exit(1)
-        self.url = f"http://{ip}/api/notify"
-        self.departures = []
-        self.title = ""
+        self.url: str = f"http://{ip}/api/notify"
+        self.departures: list[Departure] = []
+        self.title: str = ""
 
-    def generate_output(self):
+    def generate_output(self) -> None:
         try:
             next_departure = next(
                 iter(sorted(self.departures, key=lambda d: d.actual_departure_time))
@@ -137,8 +139,8 @@ class PixelClockPrinter:
             raise typer.Exit(1)
         print("Look at your clock, not here :)")
 
-    def set_title(self, title: str):
+    def set_title(self, title: str) -> None:
         self.title = title
 
-    def add_departure(self, departure: Departure):
+    def add_departure(self, departure: Departure) -> None:
         self.departures.append(departure)
