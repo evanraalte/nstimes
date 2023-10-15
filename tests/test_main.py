@@ -40,7 +40,7 @@ def test_app_gets_train_times_table() -> None:
             "Amersfoort Centraal",
             "--end",
             "Utrecht Centraal",
-            "--printer",
+            "--printer-choice",
             "table",
         ],
     )

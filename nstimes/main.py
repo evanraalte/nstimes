@@ -120,7 +120,9 @@ def journey(
     date: Annotated[
         str, typer.Option(help=f"Date to departure ({DATE_FORMAT})")
     ] = datetime.now().strftime("%d-%m-%Y"),
-    printer_choice: PrinterChoice = PrinterChoice.ascii,
+    printer_choice: Annotated[
+        PrinterChoice, typer.Option(help="The type of printer")
+    ] = PrinterChoice.ascii,
 ) -> None:
     printer: None | ConsolePrinter | ConsoleTablePrinter | PixelClockPrinter = None
     if printer_choice == PrinterChoice.ascii:
