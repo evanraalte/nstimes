@@ -1,5 +1,9 @@
+import json
+import os
 from typing import Protocol
 
+import httpx
+import typer
 from rich import print
 from rich.console import Console
 from rich.table import Column
@@ -84,3 +88,57 @@ class ConsoleTablePrinter:
             f"{cyan(departure.time_left_minutes)} min",
             f"{green(act_dep_time_str)}{delay_str}",
         )
+
+
+class PixelClockPrinter:
+    def generate_payload(self, departure: Departure):
+        return json.dumps(
+            {
+                "text": [
+                    {
+                        "t": f"{departure.actual_departure_time.strftime('%H:%M')}",
+                        "c": "FFFFFF" if departure.delay_minutes == 0 else "FF0000",
+                    },
+                    {"t": f"{departure.platform}", "c": "00FF00"},
+                ],
+                "stack": False,
+                "duration": 10,
+                "noScroll": True,
+            }
+        )
+
+    def __init__(self):
+        try:
+            ip = os.environ["PIXEL_CLOCK_IP"]
+        except KeyError:
+            print("Can't initiate printer, please instantiate env var PIXEL_CLOCK_IP")
+            raise typer.Exit(1)
+        self.url = f"http://{ip}/api/notify"
+        self.departures = []
+        self.title = ""
+
+    def generate_output(self):
+        try:
+            next_departure = next(
+                iter(sorted(self.departures, key=lambda d: d.actual_departure_time))
+            )
+        except StopIteration:
+            print("No departures to print")
+            raise typer.Exit(1)
+        payload = self.generate_payload(next_departure)
+        try:
+            response = httpx.post(self.url, data=payload)
+            response.raise_for_status()
+        except httpx.ReadTimeout as exc:
+            print(f"Could not reach your clock, got: {exc}")
+            raise typer.Exit(2)
+        except httpx.HTTPStatusError as exc:
+            print(f"Got bad request from your clock, got: {exc}")
+            raise typer.Exit(1)
+        print("Look at your clock, not here :)")
+
+    def set_title(self, title: str):
+        self.title = title
+
+    def add_departure(self, departure: Departure):
+        self.departures.append(departure)
