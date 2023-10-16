@@ -4,7 +4,10 @@ from dataclasses import InitVar
 from datetime import datetime
 from typing import Optional
 
-from rich.table import Table
+from nstimes.utils import get_uic_mapping
+from nstimes.utils import httpx_get
+
+DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 
 
 @dataclass
@@ -31,3 +34,44 @@ class Departure:
         )
         time_left = self.actual_departure_time - reference_time
         return int(time_left.total_seconds() / 60)
+
+
+def get_departures(
+    start: str, end: str, token: str, rdc3339_datetime: str
+) -> list[Departure]:
+    uic_mapping = get_uic_mapping()
+
+    query_params = {
+        "originUicCode": uic_mapping[start],
+        "destinationUicCode": uic_mapping[end],
+        "dateTime": rdc3339_datetime,
+    }
+    response = httpx_get(token=token, query_params=query_params, api="v3/trips")
+    departures = []
+    trips = response.json()["trips"]
+    for trip in trips:
+        trip = trip["legs"][0]
+        origin = trip["origin"]
+
+        track = origin.get("actualTrack", origin.get("plannedTrack", "?"))
+
+        planned_departure_time = datetime.strptime(
+            origin["plannedDateTime"], DATETIME_FORMAT_STRING
+        )
+
+        actual_departure_time = origin.get("actualDateTime")
+        if actual_departure_time is not None:
+            actual_departure_time = datetime.strptime(
+                actual_departure_time, DATETIME_FORMAT_STRING
+            )
+
+        train_type = trip["product"]["categoryCode"]
+
+        departure = Departure(
+            train_type=train_type,
+            platform=track,
+            planned_departure_time=planned_departure_time,
+            actual_departure_time_init=actual_departure_time,
+        )
+        departures.append(departure)
+    return departures

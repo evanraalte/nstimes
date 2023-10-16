@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 from typing import Protocol
 
 import httpx
@@ -144,3 +145,22 @@ class PixelClockPrinter:
 
     def add_departure(self, departure: Departure) -> None:
         self.departures.append(departure)
+
+
+class PrinterChoice(str, Enum):
+    table = "table"
+    ascii = "ascii"
+    pixelclock = "pixelclock"
+
+
+def get_printer(
+    printer_choice: PrinterChoice,
+) -> ConsolePrinter | ConsoleTablePrinter | PixelClockPrinter:
+    if printer_choice == PrinterChoice.ascii:
+        return ConsolePrinter()
+    elif printer_choice == PrinterChoice.table:
+        return ConsoleTablePrinter()
+    elif printer_choice == PrinterChoice.pixelclock:
+        return PixelClockPrinter()
+    else:
+        raise typer.Exit(1)

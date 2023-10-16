@@ -1,8 +1,6 @@
-import functools
 import json
 import os
 from datetime import datetime
-from enum import Enum
 from importlib.metadata import version
 from typing import Generator
 
@@ -11,58 +9,24 @@ import typer
 from dotenv import load_dotenv
 from typing_extensions import Annotated
 
-from nstimes.departure import Departure
-from nstimes.printers import ConsolePrinter
-from nstimes.printers import ConsoleTablePrinter
-from nstimes.printers import PixelClockPrinter
-from nstimes.printers import Printer
+from nstimes.departure import get_departures
+from nstimes.printers import get_printer
+from nstimes.printers import PrinterChoice
+from nstimes.utils import convert_to_rfc3339
+from nstimes.utils import DATE_FORMAT
+from nstimes.utils import get_uic_mapping
+from nstimes.utils import httpx_get
+from nstimes.utils import STATIONS_FILE
+from nstimes.utils import TIME_FORMAT
 
 # Load environment variables from the .env file
 load_dotenv()
-
-DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
-MINUTES_NEEDED = 0
-SCRIPT_DIR = os.path.dirname(__file__)
-STATIONS_FILE = os.path.join(SCRIPT_DIR, "stations.json")
-DATE_FORMAT = "%d-%m-%Y"
-TIME_FORMAT = "%H:%M"
-
-
-class PrinterChoice(str, Enum):
-    table = "table"
-    ascii = "ascii"
-    pixelclock = "pixelclock"
-
-
-def convert_to_rfc3339(time: str, date: str) -> str:
-    datetime_obj = datetime.strptime(f"{date} {time}", f"{DATE_FORMAT} {TIME_FORMAT}")
-    rfc3339_str = datetime_obj.isoformat()
-    return rfc3339_str
-
-
-def get_headers(token: str) -> dict[str, str]:
-    return {"Cache-Control": "no-cache", "Ocp-Apim-Subscription-Key": token}
 
 
 app = typer.Typer(
     help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.",
     pretty_exceptions_show_locals=os.getenv("SHOW_LOCALS"),
 )
-
-
-def httpx_get(token: str, query_params: dict[str, str], api: str) -> httpx.Response:
-    API_URL = "https://gateway.apiportal.ns.nl/reisinformatie-api/api"
-    try:
-        with httpx.Client() as client:
-            response = client.get(
-                url=f"{API_URL}/{api}", headers=get_headers(token), params=query_params
-            )
-            response.raise_for_status()
-            return response
-    except httpx.ReadTimeout:
-        raise typer.Exit(2)
-    except httpx.HTTPStatusError:
-        raise typer.Exit(1)
 
 
 @app.command(help="Generate stations lookup, should not be neccesary", hidden=True)
@@ -82,12 +46,6 @@ def update_stations_json(
     with open(path, "w", encoding="utf-8") as file:
         json.dump(uic_mapping, file)
     typer.Exit(0)
-
-
-def get_uic_mapping() -> dict[str, str]:
-    with open(STATIONS_FILE, "r", encoding="utf-8") as file:
-        uic_mapping: dict[str, str] = json.load(file)
-    return uic_mapping
 
 
 def complete_name(lut: dict[str, str], incomplete: str) -> Generator[str, None, None]:
@@ -124,58 +82,17 @@ def journey(
         PrinterChoice, typer.Option(help="The type of printer")
     ] = PrinterChoice.ascii,
 ) -> None:
-    printer: None | ConsolePrinter | ConsoleTablePrinter | PixelClockPrinter = None
-    if printer_choice == PrinterChoice.ascii:
-        printer = ConsolePrinter()
-    elif printer_choice == PrinterChoice.table:
-        printer = ConsoleTablePrinter()
-    elif printer_choice == PrinterChoice.pixelclock:
-        printer = PixelClockPrinter()
-    else:
-        raise typer.Exit(1)
-
-    uic_mapping = get_uic_mapping()
-
-    query_params = {
-        "originUicCode": uic_mapping[start],
-        "destinationUicCode": uic_mapping[end],
-        "dateTime": convert_to_rfc3339(time, date),
-    }
-    response = httpx_get(token=token, query_params=query_params, api="v3/trips")
-
-    trips = response.json()["trips"]
+    printer = get_printer(printer_choice)
 
     printer.set_title(f"Journeys from {start} -> {end} at {date} {time}")
-
-    for trip in trips:
-        trip = trip["legs"][0]
-        origin = trip["origin"]
-
-        track = origin.get("actualTrack", origin.get("plannedTrack", "?"))
-
-        planned_departure_time = datetime.strptime(
-            origin["plannedDateTime"], DATETIME_FORMAT_STRING
-        )
-
-        actual_departure_time = origin.get("actualDateTime")
-        if actual_departure_time is not None:
-            actual_departure_time = datetime.strptime(
-                actual_departure_time, DATETIME_FORMAT_STRING
-            )
-
-        train_type = trip["product"]["categoryCode"]
-
-        departure = Departure(
-            train_type=train_type,
-            platform=track,
-            planned_departure_time=planned_departure_time,
-            actual_departure_time_init=actual_departure_time,
-        )
+    rdc3339_datetime = convert_to_rfc3339(time, date)
+    departures = get_departures(
+        start=start, end=end, token=token, rdc3339_datetime=rdc3339_datetime
+    )
+    for departure in departures:
         if departure.time_left_minutes() >= 0:
             printer.add_departure(departure)
-
     printer.generate_output()
-    typer.Exit(0)
 
 
 def version_callback(value: bool) -> None:
