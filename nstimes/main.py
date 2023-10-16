@@ -84,7 +84,7 @@ def journey(
 ) -> None:
     printer = get_printer(printer_choice)
 
-    printer.set_title(f"Journeys from {start} -> {end} at {date} {time}")
+    printer.title = f"Journeys from {start} -> {end} at {date} {time}"
     rdc3339_datetime = convert_to_rfc3339(time, date)
     departures = get_departures(
         start=start, end=end, token=token, rdc3339_datetime=rdc3339_datetime

@@ -40,15 +40,15 @@ def test_set_title() -> None:
     os.environ["PIXEL_CLOCK_IP"] = "something"
 
     printer: ConsolePrinter = ConsolePrinter()
-    printer.set_title("Test")
+    printer.title = "Test"
     assert printer.title == "Test"
 
     printer2: ConsoleTablePrinter = ConsoleTablePrinter()
-    printer2.set_title("Test2")
+    printer2.title = "Test2"
     assert printer2.title == "Test2"
 
     printer3: PixelClockPrinter = PixelClockPrinter()
-    printer3.set_title("Test3")
+    printer3.title = "Test3"
     assert printer3.title == "Test3"
 
 
