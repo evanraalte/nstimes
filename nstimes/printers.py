@@ -70,7 +70,7 @@ class ConsoleTablePrinter:
     def title(self) -> str:
         return str(self.table.title)
 
-    @property.setter
+    @title.setter
     def title(self, value: str) -> None:
         self.table.title = value
 
