@@ -1,9 +1,11 @@
 import os
 from datetime import datetime
 
+import typer
 import uvicorn
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import HTTPException
 
 from nstimes.departure import Departure
 from nstimes.departure import get_departures
@@ -13,7 +15,10 @@ app = FastAPI()
 
 
 def get_token() -> str:
-    return os.environ["NS_API_TOKEN"]
+    try:
+        return os.environ["NS_API_TOKEN"]
+    except KeyError:
+        raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
 
 @app.get("/nsau")
@@ -34,4 +39,4 @@ async def nsau(
 
 def start() -> None:
     """Launched with `poetry run start` at root level"""
-    uvicorn.run("nstimes.server:app", host="0.0.0.0", port=8000)
+    uvicorn.run("nstimes.server:app", host="0.0.0.0", port=8000)  # pragma: no cover
