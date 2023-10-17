@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 from typing import Protocol
 
 import httpx
@@ -17,9 +18,6 @@ class Printer(Protocol):
 
     def generate_output(self) -> None:
         """generates output in the console"""
-
-    def set_title(self, title: str) -> None:
-        """Sets the title of the generated output"""
 
     def add_departure(self, departure: Departure) -> None:
         """adds a row to the departures"""
@@ -47,9 +45,6 @@ class ConsolePrinter:
         print("\n")
         print(self.buf)
 
-    def set_title(self, title: str) -> None:
-        self.title = title
-
     def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
         delay_str = (
@@ -75,8 +70,9 @@ class ConsoleTablePrinter:
     def title(self) -> str:
         return str(self.table.title)
 
-    def set_title(self, title: str) -> None:
-        self.table.title = title
+    @title.setter
+    def title(self, value: str) -> None:
+        self.table.title = value
 
     def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
@@ -139,8 +135,24 @@ class PixelClockPrinter:
             raise typer.Exit(1)
         print("Look at your clock, not here :)")
 
-    def set_title(self, title: str) -> None:
-        self.title = title
-
     def add_departure(self, departure: Departure) -> None:
         self.departures.append(departure)
+
+
+class PrinterChoice(str, Enum):
+    table = "table"
+    ascii = "ascii"
+    pixelclock = "pixelclock"
+
+
+def get_printer(
+    printer_choice: PrinterChoice,
+) -> Printer:
+    if printer_choice == PrinterChoice.ascii:
+        return ConsolePrinter()
+    elif printer_choice == PrinterChoice.table:
+        return ConsoleTablePrinter()
+    elif printer_choice == PrinterChoice.pixelclock:
+        return PixelClockPrinter()
+    else:
+        raise typer.Exit(1)

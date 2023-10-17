@@ -14,6 +14,7 @@ from pytest_httpx import HTTPXMock
 from nstimes.departure import Departure
 from nstimes.printers import ConsolePrinter
 from nstimes.printers import ConsoleTablePrinter
+from nstimes.printers import get_printer
 from nstimes.printers import PixelClockPrinter
 from nstimes.printers import Printer
 from tests.strategies import departure_strategy
@@ -39,15 +40,15 @@ def test_set_title() -> None:
     os.environ["PIXEL_CLOCK_IP"] = "something"
 
     printer: ConsolePrinter = ConsolePrinter()
-    printer.set_title("Test")
+    printer.title = "Test"
     assert printer.title == "Test"
 
     printer2: ConsoleTablePrinter = ConsoleTablePrinter()
-    printer2.set_title("Test2")
+    printer2.title = "Test2"
     assert printer2.title == "Test2"
 
     printer3: PixelClockPrinter = PixelClockPrinter()
-    printer3.set_title("Test3")
+    printer3.title = "Test3"
     assert printer3.title == "Test3"
 
 
@@ -103,3 +104,8 @@ def test_pixelclock_empty_departures_cant_print_output(httpx_mock: HTTPXMock) ->
     printer = PixelClockPrinter()
     with pytest.raises(typer.Exit, match=r"1"):
         printer.generate_output()
+
+
+def test_invalid_printer_raises_exit_1() -> None:
+    with pytest.raises(typer.Exit, match=r"1"):
+        get_printer("invalid")  # type: ignore

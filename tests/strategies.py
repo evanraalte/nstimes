@@ -8,7 +8,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from nstimes.departure import Departure
-from nstimes.main import STATIONS_FILE
+from nstimes.utils import STATIONS_FILE
 
 # Define a Hypothesis strategy for generating times in the format "HH:MM"
 time_strategy: st.SearchStrategy[datetime] = st.datetimes(
