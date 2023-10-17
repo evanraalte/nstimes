@@ -34,9 +34,7 @@ def update_stations_json(
     token: Annotated[
         str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
     ],
-    path: Annotated[
-        str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")
-    ] = STATIONS_FILE,
+    path: Annotated[str, typer.Option(help="Path for stations.json")] = STATIONS_FILE,
 ) -> None:
     query_params = {"countryCodes": "nl"}
     response = httpx_get(token=token, query_params=query_params, api="v2/stations")
