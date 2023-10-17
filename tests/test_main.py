@@ -32,6 +32,13 @@ def test_app_gets_train_times() -> None:
     assert result.exit_code == 0
 
 
+def test_app_unknown_stations_raises_1() -> None:
+    result = runner.invoke(
+        app, ["journey", "--start", "bad input", "--end", "Utrecht Centraal"]
+    )
+    assert result.exit_code == 1
+
+
 def test_app_gets_train_times_table() -> None:
     result = runner.invoke(
         app,

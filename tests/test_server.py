@@ -5,6 +5,7 @@ from unittest.mock import patch
 import pytest
 from fastapi import HTTPException
 from fastapi import Response
+from fastapi import status
 from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
@@ -54,3 +55,25 @@ def test_no_token_raises_500(client_no_token: TestClient) -> None:
         "/journey", params={"start": "Amersfoort Centraal", "end": "Utrecht Centraal"}
     )
     assert response.status_code == 500
+    assert "Could not find NS_API_TOKEN" in response.text
+
+
+def test_journey_bad_start_returns_400(client: TestClient) -> None:
+    response = client.get(
+        "/journey", params={"start": "Bad input", "end": "Utrecht Centraal"}
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_journey_bad_end_returns_400(client: TestClient) -> None:
+    response = client.get(
+        "/journey", params={"start": "Amersfoort Centraal", "end": "Bad input"}
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_get_stations(client_no_token: TestClient) -> None:
+    response = client_no_token.get("/stations")
+    assert response.status_code == 200
+    data = response.json()
+    assert "Amersfoort Centraal" in data

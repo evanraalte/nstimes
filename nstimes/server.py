@@ -6,10 +6,12 @@ import uvicorn
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
+from fastapi import status
 
 from nstimes.departure import Departure
 from nstimes.departure import get_departures
 from nstimes.utils import convert_to_rfc3339
+from nstimes.utils import get_uic_mapping
 
 app = FastAPI()
 
@@ -21,6 +23,11 @@ def get_token() -> str:
         raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
 
+@app.get("/stations")
+async def stations() -> dict[str, str]:
+    return get_uic_mapping()
+
+
 @app.get("/journey")
 async def journey(
     start: str,
@@ -30,12 +37,18 @@ async def journey(
     time: str = datetime.now().strftime("%H:%M"),
 ) -> list[Departure]:
     rdc3339_datetime = convert_to_rfc3339(time, date)
-    departures = get_departures(
-        start=start,
-        end=end,
-        token=token,
-        rdc3339_datetime=rdc3339_datetime,
-    )
+    try:
+        departures = get_departures(
+            start=start,
+            end=end,
+            token=token,
+            rdc3339_datetime=rdc3339_datetime,
+        )
+    except KeyError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"One or more stations not correct: {exc}, get available stations from /stations",
+        )
     return departures
 
 
@@ -45,4 +58,4 @@ def start() -> None:
 
 
 if __name__ == "__main__":
-    start()
+    start()  # pragma: no cover

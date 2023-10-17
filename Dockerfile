@@ -20,11 +20,11 @@ COPY ./pyproject.toml ./poetry.lock ./
 # RUN --mount=type=cache,target=$POETRY_CACHE_DIR poetry install --no-root --no-interaction --no-ansi && rm -rf ${POETRY_CACHE_DIR}
 
 # TODO: separate runtime and devtime (for CI checks)
-RUN poetry install --no-interaction --no-ansi
+RUN poetry install --no-root --only main --no-interaction --no-ansi
 
 
 # TODO: move to slim-buster for runtime
-FROM python:3.11-buster as runtime
+FROM python:3.11-slim-buster as runtime
 
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
@@ -34,6 +34,7 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 # Runtime should contain applications
 # Devtime should contain integration tests etc
 COPY . .
+ENV NS_API_TOKEN="not defined"
 ENV PYTHONPATH=.
 ENTRYPOINT [ "python", "nstimes/server.py" ]
 EXPOSE 8000
