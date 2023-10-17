@@ -1,17 +1,10 @@
-name: Python package
+name: Publish server image to dockerhub
 on:
   push:
     tags:
       - "v*.*.*"
+  workflow_dispatch:
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build and publish to pypi
-        uses: JRubics/poetry-publish@v1.17
-        with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
   docker:
     runs-on: ubuntu-latest
     steps:
