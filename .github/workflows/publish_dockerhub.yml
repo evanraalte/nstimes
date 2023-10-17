@@ -21,5 +21,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           tags: evanraalte/nstimes:latest # tag in future: https://stackoverflow.com/questions/58177786/get-the-current-pushed-tag-in-github-actions
