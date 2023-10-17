@@ -1,20 +1,24 @@
 import os
 from datetime import datetime
+from slowapi import Limiter, _rate_limit_exceeded_handler
 
-import typer
 import uvicorn
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi import status
-
+from fastapi import Request
 from nstimes.departure import Departure
 from nstimes.departure import get_departures
 from nstimes.utils import convert_to_rfc3339
 from nstimes.utils import get_uic_mapping
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI()
-
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 def get_token() -> str:
     try:
@@ -22,9 +26,9 @@ def get_token() -> str:
     except KeyError:
         raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
-
 @app.get("/stations")
-async def stations() -> dict[str, str]:
+@limiter.limit(limit_value="5/minute")
+async def stations(request: Request) -> dict[str, str]:
     return get_uic_mapping()
 
 
