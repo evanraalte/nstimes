@@ -25,6 +25,16 @@ def create_client() -> Generator[TestClient, None, None]:
     yield client
     app.dependency_overrides.clear()
 
+@pytest.fixture(name="client_production", scope="function")
+def create_client_production() -> Generator[TestClient, None, None]:
+    from nstimes.server import get_app
+
+    settings = Settings(ns_api_token="something", virtual_host="myhost")
+    app = get_app(limiter=None, settings=settings)
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
 
 @pytest.fixture(name="client_no_token", scope="function")
 def create_client_no_token() -> Generator[TestClient, None, None]:
@@ -38,6 +48,12 @@ def mocked_response(
     start: str, end: str, rdc3339_datetime: str, token: str
 ) -> Response:
     return Response(status_code=200)
+
+
+
+def test_production_has_no_docs(client_production: TestClient) -> None:
+    response =  client_production.get("/docs")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_journey_returns_200(

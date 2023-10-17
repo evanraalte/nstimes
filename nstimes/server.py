@@ -33,7 +33,6 @@ settings = Settings()
 
 
 def get_app(limiter: Limiter, settings: Settings) -> FastAPI:
-    settings = Settings()
     print(settings)
     if settings.virtual_host:
         print("Rolling out production environment")
@@ -58,13 +57,6 @@ def get_app(limiter: Limiter, settings: Settings) -> FastAPI:
 
 
 app = get_app(limiter, settings)
-
-
-# def get_token() -> str:
-#     try:
-#         return os.environ["NS_API_TOKEN"]
-#     except KeyError:
-#         raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
 
 @app.get("/stations")
