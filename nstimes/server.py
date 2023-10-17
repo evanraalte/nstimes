@@ -60,11 +60,11 @@ def get_app(limiter: Limiter, settings: Settings) -> FastAPI:
 app = get_app(limiter, settings)
 
 
-def get_token() -> str:
-    try:
-        return os.environ["NS_API_TOKEN"]
-    except KeyError:
-        raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
+# def get_token() -> str:
+#     try:
+#         return os.environ["NS_API_TOKEN"]
+#     except KeyError:
+#         raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
 
 @app.get("/stations")
@@ -77,16 +77,18 @@ async def stations(request: Request) -> dict[str, str]:
 async def journey(
     start: str,
     end: str,
-    token: str = Depends(get_token),
+    settings: Settings = Depends(get_settings),
     date: str = datetime.now().strftime("%d-%m-%Y"),
     time: str = datetime.now().strftime("%H:%M"),
 ) -> list[Departure]:
     rdc3339_datetime = convert_to_rfc3339(time, date)
+    if not settings.ns_api_token:
+        raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
     try:
         departures = get_departures(
             start=start,
             end=end,
-            token=token,
+            token=settings.ns_api_token,
             rdc3339_datetime=rdc3339_datetime,
         )
     except KeyError as exc:

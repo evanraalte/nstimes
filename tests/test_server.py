@@ -10,17 +10,17 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from nstimes import server
-from nstimes.server import get_token
+from nstimes.server import Settings, get_settings
 
 
 @pytest.fixture(name="client", scope="function")
 def create_client() -> Generator[TestClient, None, None]:
     from nstimes.server import app
 
-    def get_mock_token() -> str:
-        return "something"
+    def get_mock_settings() -> Settings:
+        return Settings(ns_api_token="something")
 
-    app.dependency_overrides[get_token] = get_mock_token
+    app.dependency_overrides[get_settings] = get_mock_settings
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
