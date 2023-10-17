@@ -10,7 +10,8 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from nstimes import server
-from nstimes.server import Settings, get_settings
+from nstimes.server import get_settings
+from nstimes.server import Settings
 
 
 @pytest.fixture(name="client", scope="function")
@@ -24,6 +25,7 @@ def create_client() -> Generator[TestClient, None, None]:
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
+
 
 @pytest.fixture(name="client_production", scope="function")
 def create_client_production() -> Generator[TestClient, None, None]:
@@ -50,9 +52,8 @@ def mocked_response(
     return Response(status_code=200)
 
 
-
 def test_production_has_no_docs(client_production: TestClient) -> None:
-    response =  client_production.get("/docs")
+    response = client_production.get("/docs")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 

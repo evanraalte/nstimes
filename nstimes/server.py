@@ -24,8 +24,10 @@ class Settings(BaseSettings):  # type: ignore[misc]
     virtual_host: str = ""
     ns_api_token: str = ""
 
+
 def get_settings() -> Settings:
     return Settings()
+
 
 load_dotenv()
 limiter = Limiter(key_func=get_remote_address)
