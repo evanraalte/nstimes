@@ -23,6 +23,7 @@ from nstimes.utils import get_uic_mapping
 class Settings(BaseSettings):  # type: ignore[misc]
     virtual_host: str = ""
     ns_api_token: str = ""
+    docs_url_override: str | None = None
 
 
 def get_settings() -> Settings:
@@ -44,13 +45,13 @@ def get_app(limiter: Limiter, settings: Settings) -> FastAPI:
                 "description": "Production environment",
             }
         ]
-        docs_url = None  # No docs for production environment
+        docs_url = settings.docs_url_override
     else:
         print("Rolling out local environment")
         servers = [
             {"url": "http://localhost:8000/", "description": "Local environment"}
         ]
-        docs_url = "/docs"
+        docs_url = settings.docs_url_override or "/docs"
 
     app = FastAPI(servers=servers, docs_url=docs_url)
     app.state.limiter = limiter
