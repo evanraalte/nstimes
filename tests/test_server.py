@@ -39,12 +39,18 @@ def mocked_response(
     return Response(status_code=200)
 
 
-def test_nsau_returns_200(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_journey_returns_200(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(server, "get_departures", mocked_response)
-    response = client.get("/nsau")
+    response = client.get(
+        "/journey", params={"start": "Amersfoort Centraal", "end": "Utrecht Centraal"}
+    )
     assert response.status_code == 200
 
 
 def test_no_token_raises_500(client_no_token: TestClient) -> None:
-    response = client_no_token.get("/nsau")
+    response = client_no_token.get(
+        "/journey", params={"start": "Amersfoort Centraal", "end": "Utrecht Centraal"}
+    )
     assert response.status_code == 500

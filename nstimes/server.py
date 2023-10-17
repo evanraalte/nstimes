@@ -21,16 +21,18 @@ def get_token() -> str:
         raise HTTPException(status_code=500, detail=f"Could not find NS_API_TOKEN")
 
 
-@app.get("/nsau")
-async def nsau(
+@app.get("/journey")
+async def journey(
+    start: str,
+    end: str,
     token: str = Depends(get_token),
     date: str = datetime.now().strftime("%d-%m-%Y"),
     time: str = datetime.now().strftime("%H:%M"),
 ) -> list[Departure]:
     rdc3339_datetime = convert_to_rfc3339(time, date)
     departures = get_departures(
-        start="Amersfoort Centraal",
-        end="Utrecht Centraal",
+        start=start,
+        end=end,
         token=token,
         rdc3339_datetime=rdc3339_datetime,
     )
