@@ -42,3 +42,7 @@ async def journey(
 def start() -> None:
     """Launched with `poetry run start` at root level"""
     uvicorn.run("nstimes.server:app", host="0.0.0.0", port=8000)  # pragma: no cover
+
+
+if __name__ == "__main__":
+    start()
