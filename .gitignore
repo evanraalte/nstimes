@@ -9,3 +9,4 @@ htmlcov
 .vscode/settings.json
 *.lcov
 *.xml
+.mypy_cache
