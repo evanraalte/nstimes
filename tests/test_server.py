@@ -10,17 +10,29 @@ from fastapi.testclient import TestClient
 from pytest_httpx import HTTPXMock
 
 from nstimes import server
-from nstimes.server import get_token
+from nstimes.server import get_settings
+from nstimes.server import Settings
 
 
 @pytest.fixture(name="client", scope="function")
 def create_client() -> Generator[TestClient, None, None]:
     from nstimes.server import app
 
-    def get_mock_token() -> str:
-        return "something"
+    def get_mock_settings() -> Settings:
+        return Settings(ns_api_token="something")
 
-    app.dependency_overrides[get_token] = get_mock_token
+    app.dependency_overrides[get_settings] = get_mock_settings
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(name="client_production", scope="function")
+def create_client_production() -> Generator[TestClient, None, None]:
+    from nstimes.server import get_app
+
+    settings = Settings(ns_api_token="something", virtual_host="myhost")
+    app = get_app(limiter=None, settings=settings)
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()
@@ -38,6 +50,11 @@ def mocked_response(
     start: str, end: str, rdc3339_datetime: str, token: str
 ) -> Response:
     return Response(status_code=200)
+
+
+def test_production_has_no_docs(client_production: TestClient) -> None:
+    response = client_production.get("/docs")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_journey_returns_200(
