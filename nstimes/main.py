@@ -13,6 +13,7 @@ from typing_extensions import Annotated
 from nstimes.departure import Departure
 from nstimes.printers import ConsolePrinter
 from nstimes.printers import ConsoleTablePrinter
+from nstimes.printers import PixelClockPrinter
 from nstimes.printers import Printer
 
 # Load environment variables from the .env file
@@ -29,11 +30,13 @@ TIME_FORMAT = "%H:%M"
 class PrinterChoice(str, Enum):
     table = "table"
     ascii = "ascii"
+    pixelclock = "pixelclock"
 
 
 printers = {
     "table": ConsoleTablePrinter,
     "ascii": ConsolePrinter,
+    "pixelclock": PixelClockPrinter,
 }
 
 
