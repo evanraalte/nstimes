@@ -44,6 +44,6 @@ jobs:
     - name: Install the project dependencies
       run: poetry install
     - name: Run the automated tests (for example)
-      run: poetry run pytest -v
+      run: poetry run pytest -v --hypothesis-show-statistics
       env:
         NS_API_TOKEN: ${{ secrets.NS_API_TOKEN }}
