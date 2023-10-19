@@ -2,7 +2,7 @@
 [![PyPI Version](https://img.shields.io/pypi/v/nstimes.svg)](https://pypi.org/project/nstimes)
 ![Python Version](https://img.shields.io/badge/Python-3.10%20%E2%86%92%203.12-blue)
 ![CI/CD](https://github.com/evanraalte/nstimes/actions/workflows/actions.yml/badge.svg)
-![Coverage](https://github.com/evanraalte/nstimes/blob/main/coverage.svg)
+![Coverage](https://github.com/evanraalte/nstimes/blob/main/coverage.svg?raw=1)
 
 
 # `nstimes`
