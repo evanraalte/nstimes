@@ -18,36 +18,43 @@ DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 MINUTES_NEEDED = 0
 SCRIPT_DIR = os.path.dirname(__file__)
 STATIONS_FILE = os.path.join(SCRIPT_DIR,"stations.json")
-API_URL="https://gateway.apiportal.ns.nl/reisinformatie-api/api"
 
+
+
+def get_headers(token):
+    return  {
+        'Cache-Control': 'no-cache',
+        'Ocp-Apim-Subscription-Key': token
+    }
 
 app = typer.Typer(
     help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool.",
     pretty_exceptions_show_locals=os.getenv("SHOW_LOCALS"),
 )
 
-@app.command(hidden=True)
-def update_stations_json(token: Annotated[str, typer.Option(help="Token to talk with the NS API",
-                                                            envvar="NS_API_TOKEN")]):
 
-    headers = {
-        'Cache-Control': 'no-cache',
-        'Ocp-Apim-Subscription-Key': token
-    }
-    query_params = {
-        "countryCodes": "nl"
-    }
-
+def httpx_get(token, query_params, api: str):
+    API_URL="https://gateway.apiportal.ns.nl/reisinformatie-api/api"
     try:
         with httpx.Client() as client:
-            response = client.get(url="{API_URL}/v2/stations",headers=headers, params=query_params)
+            response = client.get(url=f"{API_URL}/{api}",headers=get_headers(token), params=query_params)
             response.raise_for_status()
+            return response
     except httpx.ReadTimeout:
             print("Request timed out (which can happen)")
             typer.Exit(0)
     except httpx.HTTPStatusError:
             typer.Exit(1)
 
+
+
+@app.command(hidden=True)
+def update_stations_json(token: Annotated[str, typer.Option(help="Token to talk with the NS API",
+                                                            envvar="NS_API_TOKEN")]):
+    query_params = {
+        "countryCodes": "nl"
+    }
+    response = httpx_get(token=token, query_params=query_params, api="v2/stations")
     # get list of stations to uic code
     data = response.json()['payload']
     uic_mapping = {d["namen"]["lang"]: d["UICCode"] for d in data}
@@ -79,20 +86,7 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
         'originUicCode': uic_mapping[start],
         'destinationUicCode': uic_mapping[end],
     }
-    headers= {
-        'Cache-Control': 'no-cache',
-        'Ocp-Apim-Subscription-Key': token
-    }
-
-    try:
-        with httpx.Client() as client:
-            response = client.get(url=f"{API_URL}/v3/trips", params=query_params, headers=headers)
-            response.raise_for_status()
-    except httpx.ReadTimeout:
-            print("Request timed out (which can happen)")
-            typer.Exit(0)
-    except httpx.HTTPStatusError:
-            typer.Exit(1)
+    response = httpx_get(token=token, query_params=query_params, api="v3/trips")
 
     trips = response.json()["trips"]
     for trip in trips:
