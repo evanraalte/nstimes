@@ -65,7 +65,7 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
         elif 'plannedTrack' in trip['origin']:
             track = trip['origin']['plannedTrack']
         else:
-            raise Exception("No track!")
+            track = "?"
 
         if 'actualDateTime' in trip['origin']:
             dep_time = datetime.strptime(trip['origin']['actualDateTime'],DATETIME_FORMAT_STRING)
@@ -76,15 +76,17 @@ def journey(start: Annotated[str, typer.Option(help="Start station", shell_compl
             delay = timedelta(0)
         else:
             raise Exception("No departure time!")
+
         train_type = trip['product']['categoryCode']
         delay_minutes = int(delay.total_seconds() / 60)
+        time_left = dep_time - datetime.now(tz=dep_time.tzinfo)
+        time_left_minutes = int(time_left.total_seconds() / 60)
 
         dep_string = f"{dep_time.strftime('%H:%M')}"
         if delay_minutes > 0:
-             dep_string += f" +{delay_minutes}"
+             dep_string = f"[bold red]{dep_string}[/bold red]"
+             time_left_minutes = f"[bold red]{time_left_minutes}[/bold red]"
 
-        time_left = dep_time - datetime.now(tz=dep_time.tzinfo)
-        time_left_minutes = int(time_left.total_seconds() / 60)
         if time_left_minutes < MINUTES_NEEDED:
             continue
 
