@@ -49,6 +49,7 @@ jobs:
       env:
         NS_API_TOKEN: ${{ secrets.NS_API_TOKEN }}
     - name: Get Coverage
+      if: ${{ github.actor != 'dependabot[bot]' }}
       uses: orgoro/coverage@v3.1
       with:
           coverageFile: coverage.xml
