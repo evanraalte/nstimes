@@ -5,7 +5,7 @@ from datetime import datetime
 @dataclass
 class Departure:
     train_type: str
-    platform: int
+    platform: str
     planned_departure_time: datetime
     actual_departure_time: datetime = None
 
