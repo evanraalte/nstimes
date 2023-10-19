@@ -11,7 +11,7 @@ MINUTES_NEEDED = 0
 STATIONS_FILE = "nstimes/stations.json"
 
 app = typer.Typer(
-    help="Find your next train"
+    help="Find your next train home while you are in CLI. I used the Dutch Railway Services (Nederlandse Spoorwegen) API to make myself this tool."
 )
 
 @app.command(hidden=True)

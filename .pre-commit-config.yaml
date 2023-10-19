@@ -10,3 +10,10 @@ repos:
     -   id: check-toml
     -   id: check-yaml
     -   id: check-added-large-files
+# -   repo: local
+#     hooks:
+#     - id: generate_docs
+#       name: generate_docs
+#       entry: typer nstimes.main utils docs --name nstimes --output README.md
+#       language: script
+#       pass_filenames: false
