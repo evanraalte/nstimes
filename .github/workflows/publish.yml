@@ -3,10 +3,9 @@ on:
   push:
     tags:
       - "v*.*.*"
-    branches:
-      - main
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
