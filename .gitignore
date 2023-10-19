@@ -7,3 +7,5 @@ pytest-coverage.txt
 pytest.xml
 htmlcov
 .vscode/settings.json
+*.lcov
+*.xml

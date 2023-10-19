@@ -1,2 +1,2 @@
 #! /bin/bash
-poetry run ptw -- -W ignore::DeprecationWarning
+ptw -- -W ignore::DeprecationWarning
