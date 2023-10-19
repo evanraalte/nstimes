@@ -1,11 +1,10 @@
 from datetime import datetime, timedelta
-from os import environ
 import os
 import typer
 from typing_extensions import Annotated
 import httpx
 import json
-from rich.progress import Progress, SpinnerColumn, TextColumn
+from importlib.metadata import version
 
 DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 MINUTES_NEEDED = 0
@@ -90,3 +89,15 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
             continue
 
         print(f"{train_type} p.{track} in {time_left_minutes} min ({dep_string})")
+
+def version_callback(value: bool):
+    if value:
+        print(f"nstimes version: {version(__package__)}")
+        raise typer.Exit()
+
+@app.callback()
+def main(
+    version: bool = typer.Option(None, "--version", callback=version_callback, is_eager=True),
+):
+    # Do other global stuff, handle other global options here
+    return
