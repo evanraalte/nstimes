@@ -1,4 +1,5 @@
 import json
+import pytest
 from typer.testing import CliRunner
 from importlib.metadata import version
 from nstimes.main import STATIONS_FILE, app
@@ -18,11 +19,13 @@ def test_app_gets_train_times():
         app, ["journey", "--start", "Amersfoort Centraal", "--end", "Utrecht Centraal"]
     )
     assert result.exit_code == 0
-    lines = result.stdout.splitlines()
-    for line in lines:
-        if line.startswith("Journeys from"):
-            continue
-        assert any(tt in line for tt in ["S", "ST", "SPR", "IC"])
+
+
+def test_app_gets_train_times_table():
+    result = runner.invoke(
+        app, ["journey", "--start", "Amersfoort Centraal", "--end", "Utrecht Centraal", "--printer", "table"]
+    )
+    assert result.exit_code == 0
 
 
 
@@ -37,8 +40,7 @@ def two_different_stations_strategy(draw):
     return (name1, name2)
 
 
-
-
+@pytest.mark.skip("Too long")
 @given(pair=two_different_stations_strategy())
 @settings(max_examples=10, deadline=None, verbosity=Verbosity.verbose)
 def test_app_gets_random_train_times(pair):

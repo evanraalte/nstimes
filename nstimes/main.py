@@ -1,15 +1,14 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from enum import Enum
 import os
-from dataclasses import dataclass
 import typer
 from typing_extensions import Annotated
 import httpx
 import json
 from importlib.metadata import version
-from rich import print
 from dotenv import load_dotenv
-
-from nstimes.types.departure import Departure
+from nstimes.printers import ConsolePrinter, ConsoleTablePrinter, Printer
+from nstimes.departure import Departure
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -18,7 +17,22 @@ DATETIME_FORMAT_STRING = "%Y-%m-%dT%H:%M:%S%z"
 MINUTES_NEEDED = 0
 SCRIPT_DIR = os.path.dirname(__file__)
 STATIONS_FILE = os.path.join(SCRIPT_DIR,"stations.json")
+DATE_FORMAT = '%d-%m-%Y'
+TIME_FORMAT = '%H:%M'
 
+class PrinterChoice(str, Enum):
+    table = "table"
+    ascii = "ascii"
+
+printers = {
+    "table" : ConsoleTablePrinter,
+    "ascii": ConsolePrinter,
+}
+
+def convert_to_rfc3339(time: str, date: str) -> str:
+    datetime_obj = datetime.strptime(f"{date} {time}", f'{DATE_FORMAT} {TIME_FORMAT}')
+    rfc3339_str = datetime_obj.isoformat()
+    return rfc3339_str
 
 
 def get_headers(token):
@@ -75,20 +89,28 @@ def get_uic_mapping() -> dict[str,str]:
 
 @app.command(help="Provide train type, platform and departure times of an A -> B journey")
 def journey(start: Annotated[str, typer.Option(help="Start station", autocompletion=complete_name)],
-         end: Annotated[str, typer.Option(help="Stop station", autocompletion=complete_name)],
-         token: Annotated[str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")]):
+            end: Annotated[str, typer.Option(help="Stop station", autocompletion=complete_name)],
+            token: Annotated[str, typer.Option(help="Token to talk with the NS API", envvar="NS_API_TOKEN")],
+            time: Annotated[str, typer.Option(help=f"Time to departure ({TIME_FORMAT})")]= datetime.now().strftime('%H:%M'),
+            date: Annotated[str, typer.Option(help=f"Date to departure ({DATE_FORMAT})")] = datetime.now().strftime('%d-%m-%Y'),
+            printer: PrinterChoice = PrinterChoice.ascii.value
+         ):
+
+    printer: Printer = printers[printer]()
 
     uic_mapping = get_uic_mapping()
-    print(f"Journeys from {start} -> {end} at {datetime.now().strftime('%H:%M')}")
-
 
     query_params = {
         'originUicCode': uic_mapping[start],
         'destinationUicCode': uic_mapping[end],
+        'dateTime': convert_to_rfc3339(time, date)
     }
     response = httpx_get(token=token, query_params=query_params, api="v3/trips")
 
     trips = response.json()["trips"]
+
+    printer.set_title(f"Journeys from {start} -> {end} at {date} {time}")
+
     for trip in trips:
         trip = trip["legs"][0]
         origin = trip["origin"]
@@ -108,7 +130,9 @@ def journey(start: Annotated[str, typer.Option(help="Start station", autocomplet
                               planned_departure_time=planned_departure_time,
                               actual_departure_time=actual_departure_time)
         if departure.time_left_minutes >= 0:
-            print(f"{departure}")
+            printer.add_departure(departure)
+
+    printer.generate_output()
 
 def version_callback(value: bool):
     if value:
@@ -117,6 +141,9 @@ def version_callback(value: bool):
 
 @app.callback()
 def main(
-    version: bool = typer.Option(None, "--version", callback=version_callback, is_eager=True),
+    version: bool = typer.Option(None, "--version", callback=version_callback, is_eager=True, help="Print version info"),
 ):
     return
+
+if __name__ == "__main__":
+    app()
