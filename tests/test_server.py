@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 from fastapi import Response
 from fastapi import status
@@ -7,7 +9,7 @@ from nstimes import server
 
 
 def mocked_response(
-    start: str, end: str, rdc3339_datetime: str, token: str
+    start: str, end: str, rdc3339_datetime: str, token: str, max_len: Optional[int]
 ) -> Response:
     return Response(status_code=200)
 
@@ -23,6 +25,21 @@ def test_journey_returns_200(
     monkeypatch.setattr(server, "get_departures", mocked_response)
     response = client.get(
         "/journey", params={"start": "Amersfoort Centraal", "end": "Utrecht Centraal"}
+    )
+    assert response.status_code == 200
+
+
+def test_journey_max_1_is_accepted(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(server, "get_departures", mocked_response)
+    response = client.get(
+        "/journey",
+        params={
+            "start": "Amersfoort Centraal",
+            "end": "Utrecht Centraal",
+            "max_len": 1,
+        },
     )
     assert response.status_code == 200
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from nstimes.departure import Departure
 
 planned = datetime.now()

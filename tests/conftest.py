@@ -1,8 +1,10 @@
 from typing import Generator
-from fastapi.testclient import TestClient
-import pytest
 
-from nstimes.server import Settings, get_settings
+import pytest
+from fastapi.testclient import TestClient
+
+from nstimes.server import get_settings
+from nstimes.server import Settings
 
 
 @pytest.fixture(name="client", scope="function")

@@ -58,7 +58,11 @@ class Departure:
 
 
 def get_departures(
-    start: str, end: str, token: str, rdc3339_datetime: str
+    start: str,
+    end: str,
+    token: str,
+    rdc3339_datetime: str,
+    max_len: Optional[int] = None,
 ) -> list[Departure]:
     uic_mapping = get_uic_mapping()
 
@@ -94,5 +98,9 @@ def get_departures(
             planned_departure_time=planned_departure_time,
             _actual_departure_time=actual_departure_time,
         )
+        if departure.time_left_minutes < 0:
+            continue
         departures.append(departure)
+        if max_len is not None and len(departures) == max_len:
+            return departures
     return departures
