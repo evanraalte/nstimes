@@ -122,4 +122,7 @@ If you use the `--printer-choice table` option it prints like:
 │ IC    │        6 │    46 min │          13:10 │
 └───────┴──────────┴───────────┴────────────────┘
 ```
-It also has support for printing on the [Pixel Clock](https://github.com/Blueforcer/awtrix-light). You just need to add the IP of the clock to your environment variables, e.g. `export PIXEL_CLOCK_IP=192.168.0.100`.
+It also has support for printing on the [Pixel Clock](https://github.com/Blueforcer/awtrix-light). You just need to add the IP of the clock to your environment variables, e.g. `export PIXEL_CLOCK_IP=192.168.0.100`:
+
+<img src="https://github.com/evanraalte/nstimes/assets/11211570/1bda75cf-120e-44b4-bc72-72ccd0c73dac" width="200">
+
