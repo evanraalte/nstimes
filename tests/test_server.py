@@ -1,55 +1,23 @@
-import os
-from typing import Generator
-from unittest.mock import patch
+from datetime import datetime
+from typing import Optional
 
 import pytest
-from fastapi import HTTPException
 from fastapi import Response
 from fastapi import status
 from fastapi.testclient import TestClient
-from pytest_httpx import HTTPXMock
 
 from nstimes import server
-from nstimes.server import get_settings
-from nstimes.server import Settings
+from nstimes.departure import Departure
 
 
-@pytest.fixture(name="client", scope="function")
-def create_client() -> Generator[TestClient, None, None]:
-    from nstimes.server import app
-
-    def get_mock_settings() -> Settings:
-        return Settings(ns_api_token="something")
-
-    app.dependency_overrides[get_settings] = get_mock_settings
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture(name="client_production", scope="function")
-def create_client_production() -> Generator[TestClient, None, None]:
-    from nstimes.server import get_app
-
-    settings = Settings(ns_api_token="something", virtual_host="myhost")
-    app = get_app(limiter=None, settings=settings)
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture(name="client_no_token", scope="function")
-def create_client_no_token() -> Generator[TestClient, None, None]:
-    from nstimes.server import app
-
-    client = TestClient(app)
-    yield client
-
-
-def mocked_response(
-    start: str, end: str, rdc3339_datetime: str, token: str
-) -> Response:
-    return Response(status_code=200)
+def mocked_departures(
+    start: str, end: str, rdc3339_datetime: str, token: str, max_len: Optional[int]
+) -> list[Departure]:
+    base = [Departure("SPR", "14b", datetime.now())]
+    if max_len:
+        return max_len * base
+    else:
+        return 5 * base
 
 
 def test_production_has_no_docs(client_production: TestClient) -> None:
@@ -60,10 +28,27 @@ def test_production_has_no_docs(client_production: TestClient) -> None:
 def test_journey_returns_200(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(server, "get_departures", mocked_response)
+    monkeypatch.setattr(server, "get_departures", mocked_departures)
     response = client.get(
         "/journey", params={"start": "Amersfoort Centraal", "end": "Utrecht Centraal"}
     )
+    assert response.status_code == 200
+
+
+def test_journey_max_1_is_accepted(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(server, "get_departures", mocked_departures)
+    response = client.get(
+        "/journey",
+        params={
+            "start": "Amersfoort Centraal",
+            "end": "Utrecht Centraal",
+            "max_len": 1,
+        },
+    )
+    data = response.json()
+    assert len(data) == 1
     assert response.status_code == 200
 
 

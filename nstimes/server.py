@@ -1,5 +1,5 @@
-import os
 from datetime import datetime
+from typing import Optional
 
 import uvicorn
 from dotenv import load_dotenv
@@ -75,6 +75,7 @@ async def journey(
     settings: Settings = Depends(get_settings),
     date: str = datetime.now().strftime("%d-%m-%Y"),
     time: str = datetime.now().strftime("%H:%M"),
+    max_len: Optional[int] = None,
 ) -> list[Departure]:
     rdc3339_datetime = convert_to_rfc3339(time, date)
     if not settings.ns_api_token:
@@ -85,12 +86,17 @@ async def journey(
             end=end,
             token=settings.ns_api_token,
             rdc3339_datetime=rdc3339_datetime,
+            max_len=max_len,
         )
     except KeyError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"One or more stations not correct: {exc}, get available stations from /stations",
         )
+
+    if max_len is not None:
+        idx = min(len(departures), max_len)
+        return departures[:idx]
     return departures
 
 

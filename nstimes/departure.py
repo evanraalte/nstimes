@@ -1,9 +1,20 @@
-from dataclasses import dataclass
 from dataclasses import field
 from dataclasses import InitVar
 from datetime import datetime
 from typing import Optional
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from dataclasses import dataclass  # pragma: no cover
+else:
+    from pydantic.dataclasses import dataclass
+
+
+from pydantic import BaseModel, field_validator, model_validator
+from pydantic import computed_field
+from pydantic import Field
+from pydantic import validator
+from pydantic_core.core_schema import FieldValidationInfo
 from nstimes.utils import get_uic_mapping
 from nstimes.utils import httpx_get
 
@@ -15,20 +26,26 @@ class Departure:
     train_type: str
     platform: str
     planned_departure_time: datetime
+    _actual_departure_time: InitVar[Optional[datetime]] = None
     actual_departure_time: datetime = field(init=False)
-    actual_departure_time_init: InitVar[Optional[datetime]] = None
 
-    def __post_init__(self, actual_departure_time_init: Optional[datetime]) -> None:
+    def __post_init__(self, _actual_departure_time: Optional[datetime]) -> None:
         self.actual_departure_time = (
-            actual_departure_time_init or self.planned_departure_time
+            _actual_departure_time or self.planned_departure_time
         )
 
+    @computed_field  # type: ignore
     @property
     def delay_minutes(self) -> int:
         delay = self.actual_departure_time - self.planned_departure_time
         return int(delay.total_seconds() / 60)
 
-    def time_left_minutes(self, reference_time: datetime = datetime.now()) -> int:
+    @computed_field  # type: ignore
+    @property
+    def time_left_minutes(self) -> int:
+        return self.calc_time_left_minutes()
+
+    def calc_time_left_minutes(self, reference_time: datetime = datetime.now()) -> int:
         reference_time = reference_time.replace(
             tzinfo=self.actual_departure_time.tzinfo
         )
@@ -37,7 +54,11 @@ class Departure:
 
 
 def get_departures(
-    start: str, end: str, token: str, rdc3339_datetime: str
+    start: str,
+    end: str,
+    token: str,
+    rdc3339_datetime: str,
+    max_len: Optional[int] = None,
 ) -> list[Departure]:
     uic_mapping = get_uic_mapping()
 
@@ -71,7 +92,9 @@ def get_departures(
             train_type=train_type,
             platform=track,
             planned_departure_time=planned_departure_time,
-            actual_departure_time_init=actual_departure_time,
+            _actual_departure_time=actual_departure_time,
         )
+        if departure.time_left_minutes < 0:
+            continue
         departures.append(departure)
     return departures

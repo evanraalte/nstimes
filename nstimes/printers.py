@@ -51,7 +51,7 @@ class ConsolePrinter:
             "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
         )
 
-        self.buf += f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.time_left_minutes():>2d} min ({act_dep_time_str}{delay_str})\n"
+        self.buf += f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str})\n"
 
 
 class ConsoleTablePrinter:
@@ -83,7 +83,7 @@ class ConsoleTablePrinter:
         self.table.add_row(
             departure.train_type,
             cyan(departure.platform),
-            f"{cyan(departure.time_left_minutes())} min",
+            f"{cyan(departure.time_left_minutes)} min",
             f"{green(act_dep_time_str)}{delay_str}",
         )
 
