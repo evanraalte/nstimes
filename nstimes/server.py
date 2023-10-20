@@ -93,6 +93,10 @@ async def journey(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"One or more stations not correct: {exc}, get available stations from /stations",
         )
+
+    if max_len is not None:
+        idx = min(len(departures), max_len)
+        return departures[:idx]
     return departures
 
 

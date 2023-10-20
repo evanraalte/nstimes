@@ -5,7 +5,7 @@ from typing import Optional
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from dataclasses import dataclass
+    from dataclasses import dataclass  # pragma: no cover
 else:
     from pydantic.dataclasses import dataclass
 
@@ -37,8 +37,6 @@ class Departure:
     @computed_field  # type: ignore
     @property
     def delay_minutes(self) -> int:
-        if self.actual_departure_time is None:
-            raise ValueError
         delay = self.actual_departure_time - self.planned_departure_time
         return int(delay.total_seconds() / 60)
 
@@ -48,8 +46,6 @@ class Departure:
         return self.calc_time_left_minutes()
 
     def calc_time_left_minutes(self, reference_time: datetime = datetime.now()) -> int:
-        if self.actual_departure_time is None:
-            raise ValueError
         reference_time = reference_time.replace(
             tzinfo=self.actual_departure_time.tzinfo
         )
@@ -101,6 +97,4 @@ def get_departures(
         if departure.time_left_minutes < 0:
             continue
         departures.append(departure)
-        if max_len is not None and len(departures) == max_len:
-            return departures
     return departures

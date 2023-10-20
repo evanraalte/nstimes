@@ -90,8 +90,6 @@ class ConsoleTablePrinter:
 
 class PixelClockPrinter:
     def generate_payload(self, departure: Departure) -> str:
-        if departure.actual_departure_time is None:
-            raise ValueError
         return json.dumps(
             {
                 "text": [
