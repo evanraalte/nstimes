@@ -1,5 +1,4 @@
 from datetime import datetime
-from datetime import timedelta
 from typing import Optional
 
 import pytest
@@ -51,6 +50,7 @@ def test_journey_max_1_is_accepted(
     data = response.json()
     assert len(data) == 1
     assert response.status_code == 200
+
 
 def test_no_token_raises_500(client_no_token: TestClient) -> None:
     response = client_no_token.get(
