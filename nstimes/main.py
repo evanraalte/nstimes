@@ -92,7 +92,7 @@ def journey(
         print("One or more of the stations does not exist")
         raise typer.Exit(1)
     for departure in departures:
-        if departure.time_left_minutes() >= 0:
+        if departure.time_left_minutes >= 0:
             printer.add_departure(departure)
     printer.generate_output()
 

@@ -15,7 +15,7 @@ def test_departure_delay(time: datetime, delay: int) -> None:
     expected_time = time + timedelta(minutes=delay)
 
     departure = Departure(
-        actual_departure_time_init=expected_time,
+        _actual_departure_time=expected_time,
         planned_departure_time=time,
         train_type="IC",
         platform="14b",
@@ -30,5 +30,5 @@ def test_departure_minutes_left(delay: int, time_now: datetime) -> None:
     departure = Departure(
         planned_departure_time=time_departure, train_type="IC", platform="14b"
     )
-    assert departure.time_left_minutes(reference_time=time_now) == delay
+    assert departure.calc_time_left_minutes(reference_time=time_now) == delay
     assert departure.delay_minutes == 0

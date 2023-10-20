@@ -71,7 +71,9 @@ def test_departure_cant_be_printed_on_unreachable_pixelclock(
     os.environ.clear()
     os.environ["PIXEL_CLOCK_IP"] = "something"
     printer = PixelClockPrinter()
-    departure = Departure("SPR", "14b", planned_departure_time=datetime.now())
+    departure = Departure(
+        train_type="SPR", platform="14b", planned_departure_time=datetime.now()
+    )
     printer.add_departure(departure)
     with pytest.raises(typer.Exit, match=r"2"):
         printer.generate_output()
@@ -82,7 +84,9 @@ def test_bad_request_returns_1_pixelclock(httpx_mock: HTTPXMock) -> None:
     os.environ.clear()
     os.environ["PIXEL_CLOCK_IP"] = "something"
     printer = PixelClockPrinter()
-    departure = Departure("SPR", "14b", datetime.now())
+    departure = Departure(
+        train_type="SPR", platform="14b", planned_departure_time=datetime.now()
+    )
     printer.add_departure(departure)
     with pytest.raises(typer.Exit, match=r"1"):
         printer.generate_output()
@@ -93,7 +97,9 @@ def test_status_200_raises_no_error_pixelclock(httpx_mock: HTTPXMock) -> None:
     os.environ.clear()
     os.environ["PIXEL_CLOCK_IP"] = "something"
     printer = PixelClockPrinter()
-    departure = Departure("SPR", "14b", datetime.now())
+    departure = Departure(
+        train_type="SPR", platform="14b", planned_departure_time=datetime.now()
+    )
     printer.add_departure(departure)
     printer.generate_output()
 

@@ -1,5 +1,4 @@
 import json
-from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 
@@ -30,7 +29,7 @@ def departure_strategy(draw: st.DrawFn) -> st.SearchStrategy[Departure]:
         train_type="SPR",
         platform="14b",
         planned_departure_time=planned,
-        actual_departure_time_init=actual,
+        _actual_departure_time=actual,
     )
 
 

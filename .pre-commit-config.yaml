@@ -17,6 +17,10 @@ repos:
 #       entry: typer nstimes.main utils docs --name nstimes --output README.md
 #       language: script
 #       pass_filenames: false
+-   repo: https://github.com/hadialqattan/pycln
+    rev: v2.3.0
+    hooks:
+      - id: pycln
 -   repo: https://github.com/psf/black
     rev: '23.9.1'
     hooks:
