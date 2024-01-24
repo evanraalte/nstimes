@@ -7,6 +7,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from nstimes.departure import Departure
+from nstimes.departure import Time
 from nstimes.utils import STATIONS_FILE
 
 # Define a Hypothesis strategy for generating times in the format "HH:MM"
@@ -28,14 +29,17 @@ def departure_strategy(draw: st.DrawFn) -> st.SearchStrategy[Departure]:
     actual_departure_time = planned_departure_time + timedelta(
         seconds=time_difference_seconds
     )
+    departure_time = Time(planned=planned_departure_time, actual=actual_departure_time)
+    arrival_time = Time(
+        planned=planned_departure_time + timedelta(minutes=30),
+        actual=actual_departure_time + timedelta(minutes=30),
+    )
 
     return Departure(
         train_type="SPR",
         platform="14b",
-        planned_departure_time=planned_departure_time,
-        _actual_departure_time=actual_departure_time,
-        planned_destination_time=planned_departure_time + timedelta(minutes=30),
-        _actual_destination_time=actual_departure_time + timedelta(minutes=30),
+        departure_time=departure_time,
+        arrival_time=arrival_time,
     )
 
 

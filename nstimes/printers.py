@@ -1,5 +1,3 @@
-import json
-import os
 from enum import Enum
 from typing import Protocol
 
@@ -12,6 +10,10 @@ from rich.table import Table
 from rich.text import Text
 
 from nstimes.departure import Departure
+from nstimes.styles import cancelled
+from nstimes.styles import cyan
+from nstimes.styles import green
+from nstimes.styles import red
 
 
 class Printer(Protocol):
@@ -22,26 +24,6 @@ class Printer(Protocol):
 
     def add_departure(self, departure: Departure) -> None:
         """adds a row to the departures"""
-
-
-def red(text: str | int) -> str:
-    return f"[bold red]{text}[/bold red]"
-
-
-def cyan(text: str | int) -> str:
-    return f"[bold cyan]{text}[/bold cyan]"
-
-
-def green(text: str | int) -> str:
-    return f"[bold green]{text}[/bold green]"
-
-
-def strike(text: str | int) -> str:
-    return f"[strike]{text}[/strike]"
-
-
-def cancelled(text: str | int) -> str:
-    return red(strike(text))
 
 
 class ConsolePrinter:
@@ -59,20 +41,7 @@ class ConsolePrinter:
             print(line)
 
     def add_departure(self, departure: Departure) -> None:
-        act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
-        act_arr_time_str = departure.planned_destination_time.strftime("%H:%M")
-        delay_str_departure = (
-            ""
-            if departure.delay_minutes_departure == 0
-            else red(f"+{departure.delay_minutes_departure}")
-        )
-        delay_str_arrival = (
-            ""
-            if departure.delay_minutes_arrival == 0
-            else red(f"+{departure.delay_minutes_arrival}")
-        )
-
-        line = f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str_departure}) -> ({act_arr_time_str}{delay_str_departure})"
+        line = f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min {departure.departure_time} -> {departure.arrival_time}"
         if departure.cancelled:
             line = cancelled(line)
         self.lines.append(line)
@@ -100,95 +69,27 @@ class ConsoleTablePrinter:
         self.table.title = value
 
     def add_departure(self, departure: Departure) -> None:
-        act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
-        delay_str_departure = (
-            ""
-            if departure.delay_minutes_departure == 0
-            else red(f"+{departure.delay_minutes_departure}")
-        )
-
-        act_arr_time_str = departure.planned_destination_time.strftime("%H:%M")
-        delay_str_arrival = (
-            ""
-            if departure.delay_minutes_arrival == 0
-            else red(f"+{departure.delay_minutes_arrival}")
-        )
-
         if departure.cancelled:
             self.table.add_row(
                 cancelled(departure.train_type),
                 cancelled(departure.platform),
                 cancelled(f"{departure.time_left_minutes} min"),
-                cancelled(f"{act_dep_time_str}{delay_str_departure}"),
-                cancelled(f"{act_arr_time_str}{delay_str_arrival}"),
+                cancelled(str(departure.departure_time)),
+                cancelled(str(departure.arrival_time)),
             )
         else:
             self.table.add_row(
                 departure.train_type,
                 cyan(departure.platform),
                 f"{cyan(departure.time_left_minutes)} min",
-                f"{green(act_dep_time_str)}{delay_str_departure}",
-                f"{green(act_arr_time_str)}{delay_str_arrival}",
+                f"{departure.departure_time}",
+                f"{departure.arrival_time}",
             )
-
-
-class PixelClockPrinter:
-    def generate_payload(self, departure: Departure) -> str:
-        return json.dumps(
-            {
-                "text": [
-                    {
-                        "t": f"{departure.actual_departure_time.strftime('%H:%M')}",
-                        "c": "FFFFFF"
-                        if departure.delay_minutes_departure == 0
-                        else "FF0000",
-                    },
-                    {"t": f"{departure.platform}", "c": "00FF00"},
-                ],
-                "stack": False,
-                "duration": 10,
-                "noScroll": True,
-            }
-        )
-
-    def __init__(self) -> None:
-        try:
-            ip = os.environ["PIXEL_CLOCK_IP"]
-        except KeyError:
-            print("Can't initiate printer, please instantiate env var PIXEL_CLOCK_IP")
-            raise typer.Exit(1)
-        self.url: str = f"http://{ip}/api/notify"
-        self.departures: list[Departure] = []
-        self.title: str = ""
-
-    def generate_output(self) -> None:
-        try:
-            next_departure = next(
-                iter(sorted(self.departures, key=lambda d: d.actual_departure_time))
-            )
-        except StopIteration:
-            print("No departures to print")
-            raise typer.Exit(1)
-        payload = self.generate_payload(next_departure)
-        try:
-            response = httpx.post(self.url, data=payload)
-            response.raise_for_status()
-        except (httpx.ReadTimeout, httpx.ConnectError) as exc:
-            print(f"Could not reach your clock, got: {exc}")
-            raise typer.Exit(2)
-        except httpx.HTTPStatusError as exc:
-            print(f"Got bad request from your clock, got: {exc}")
-            raise typer.Exit(1)
-        print("Look at your clock, not here :)")
-
-    def add_departure(self, departure: Departure) -> None:
-        self.departures.append(departure)
 
 
 class PrinterChoice(str, Enum):
     table = "table"
     ascii = "ascii"
-    pixelclock = "pixelclock"
 
 
 def get_printer(
@@ -198,7 +99,5 @@ def get_printer(
         return ConsolePrinter()
     elif printer_choice == PrinterChoice.table:
         return ConsoleTablePrinter()
-    elif printer_choice == PrinterChoice.pixelclock:
-        return PixelClockPrinter()
     else:
         raise typer.Exit(1)
