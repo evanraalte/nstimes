@@ -2,7 +2,6 @@
 [![PyPI Version](https://img.shields.io/pypi/v/nstimes.svg)](https://pypi.org/project/nstimes)
 ![Python Version](https://img.shields.io/badge/Python-3.10%20%E2%86%92%203.12-blue)
 ![CI/CD](https://github.com/evanraalte/nstimes/actions/workflows/actions.yml/badge.svg)
-![Coverage](https://github.com/evanraalte/nstimes/blob/main/coverage.svg?raw=1)
 
 
 # `nstimes`
@@ -44,7 +43,7 @@ $ nstimes journey [OPTIONS]
 * `--token TEXT`: Token to talk with the NS API  [env var: NS_API_TOKEN; required]
 * `--time TEXT`: Time to departure (%H:%M)  [default: 12:19]
 * `--date TEXT`: Date to departure (%d-%m-%Y)  [default: 15-10-2023]
-* `--printer-choice [table|ascii|pixelclock]`: [default: ascii]
+* `--printer-choice [table|ascii]`: [default: ascii]
 * `--help`: Show this message and exit.
 
 ## `nstimes update-stations-json`
@@ -92,7 +91,7 @@ source ~/.zshrc # Reload shell
 Create an account at the [NS API portal](https://apiportal.ns.nl/signin).
 Then create a token [here](https://apiportal.ns.nl/api-details#api=reisinformatie-api).
 
-Add the token to your shell:
+Add the token to your shell, for zsh:
 ```bash
 echo -e "\nexport NS_API_TOKEN=****\n" | tee -a ~/.zshrc
 source ~/.zshrc # Reload shell
@@ -102,26 +101,25 @@ source ~/.zshrc # Reload shell
 **Printers**
 By default, this tool prints in ASCII, e.g.:
 ```bash
-IC  p.  6 in  6 min (12:28)
-IC  p.  6 in 18 min (12:40)
-SPR p.  6 in 27 min (12:49)
-IC  p.  6 in 36 min (12:58)
-IC  p.  6 in 48 min (13:10)
+IC  p. 12 in  4 min (21:37) -> (21:50)
+IC  p. 12 in 16 min (21:49) -> (22:02)
+SPR p.  4 in 17 min (21:50) -> (22:10)
+IC  p. 12 in 34 min (22:07) -> (22:20)
+IC  p. 12 in 46 min (22:19) -> (22:32)
+SPR p.  4 in 47 min (22:20) -> (22:40)
 ```
 If you use the `--printer-choice table` option it prints like:
 ```bash
-  Journeys from Amersfoort Centraal -> Utrecht
-          Centraal at 15-10-2023 12:23
-┏━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┓
-┃ Train ┃ Platform ┃ Leaves in ┃ Departure time ┃
-┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━┩
-│ IC    │        6 │     4 min │          12:28 │
-│ IC    │        6 │    16 min │          12:40 │
-│ SPR   │        6 │    25 min │          12:49 │
-│ IC    │        6 │    34 min │          12:58 │
-│ IC    │        6 │    46 min │          13:10 │
-└───────┴──────────┴───────────┴────────────────┘
+    Journeys from Utrecht Centraal -> Amersfoort Centraal at
+                        24-01-2024 21:32
+┏━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ Train ┃ Platform ┃ Leaves in ┃ Departure time ┃ Arrival time ┃
+┡━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ IC    │       12 │     4 min │        (21:37) │      (21:50) │
+│ IC    │       12 │    16 min │        (21:49) │      (22:02) │
+│ SPR   │        4 │    17 min │        (21:50) │      (22:10) │
+│ IC    │       12 │    34 min │        (22:07) │      (22:20) │
+│ IC    │       12 │    46 min │        (22:19) │      (22:32) │
+│ SPR   │        4 │    47 min │        (22:20) │      (22:40) │
+└───────┴──────────┴───────────┴────────────────┴──────────────┘
 ```
-It also has support for printing on the [Pixel Clock](https://github.com/Blueforcer/awtrix-light). You just need to add the IP of the clock to your environment variables, e.g. `export PIXEL_CLOCK_IP=192.168.0.100`:
-
-<img src="https://github.com/evanraalte/nstimes/assets/11211570/1bda75cf-120e-44b4-bc72-72ccd0c73dac" width="200">
