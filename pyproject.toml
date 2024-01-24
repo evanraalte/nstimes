@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nstimes"
-version = "0.2.0"
+version = "0.3.0"
 description = "CLI tool to obtain schedule info from the dutch railway services"
 authors = ["Erik van Raalte"]
 readme = "README.md"
