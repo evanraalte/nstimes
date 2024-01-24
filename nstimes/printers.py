@@ -33,8 +33,6 @@ class ConsolePrinter:
         self.lines: list[str] = []
 
     def generate_output(self) -> None:
-        text = Text("Hoi", style="strike")
-        print(text)
         print(self.title)
         print("\n")
         for line in self.lines:

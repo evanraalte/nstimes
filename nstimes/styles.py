@@ -1,4 +1,3 @@
-
 def red(text: str | int) -> str:
     return f"[bold red]{text}[/bold red]"
 

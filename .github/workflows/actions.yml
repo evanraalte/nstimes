@@ -2,7 +2,9 @@ name: linting and tests
 
 on:
   pull_request:
-
+  push:
+    branches:
+      - main
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
@@ -49,7 +51,7 @@ jobs:
       env:
         NS_API_TOKEN: ${{ secrets.NS_API_TOKEN }}
     - name: Get Coverage
-      if: ${{ github.actor != 'dependabot[bot]' }}
+      if: ${{ github.actor != 'dependabot[bot]' && github.event_name == 'pull_request'}}
       uses: orgoro/coverage@v3.1
       with:
           coverageFile: coverage.xml
