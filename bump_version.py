@@ -1,9 +1,14 @@
+# mypy: ignore-errors
 import importlib.metadata
 import tomllib
+
 import toml
+
+
 def increment_patch_version(version: str) -> str:
-    major, minor, patch = map(int, version.split('.'))
+    major, minor, patch = map(int, version.split("."))
     return f"{major}.{minor}.{patch + 1}"
+
 
 try:
     with open("pyproject.toml", "rb") as f:
