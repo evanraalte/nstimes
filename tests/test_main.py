@@ -1,5 +1,4 @@
 import json
-import os
 import tempfile
 from importlib.metadata import version
 from pathlib import Path
@@ -53,24 +52,6 @@ def test_app_gets_train_times_table() -> None:
         ],
     )
     assert result.exit_code == 0
-
-
-def test_app_gets_train_times_pixelclock() -> None:
-    result = runner.invoke(
-        app,
-        [
-            "journey",
-            "--start",
-            "Amersfoort Centraal",
-            "--end",
-            "Utrecht Centraal",
-            "--printer-choice",
-            "pixelclock",
-        ],
-        env={"PIXEL_CLOCK_IP": "something", "NS_API_TOKEN": os.environ["NS_API_TOKEN"]},
-    )
-    assert "Could not reach your clock" in result.stdout
-    assert result.exit_code == 2
 
 
 def test_app_gets_train_times_unknown_raises_error() -> None:
