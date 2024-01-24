@@ -9,6 +9,7 @@ from rich import print
 from rich.console import Console
 from rich.table import Column
 from rich.table import Table
+from rich.text import Text
 
 from nstimes.departure import Departure
 
@@ -35,23 +36,37 @@ def green(text: str | int) -> str:
     return f"[bold green]{text}[/bold green]"
 
 
+def strike(text: str | int) -> str:
+    return f"[strike]{text}[/strike]"
+
+
+def cancelled(text: str | int) -> str:
+    return red(strike(text))
+
+
 class ConsolePrinter:
     def __init__(self) -> None:
         self.buf = ""
         self.title = ""
+        self.lines: list[str] = []
 
     def generate_output(self) -> None:
+        text = Text("Hoi", style="strike")
+        print(text)
         print(self.title)
         print("\n")
-        print(self.buf)
+        for line in self.lines:
+            print(line)
 
     def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
         delay_str = (
             "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
         )
-
-        self.buf += f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str})\n"
+        line = f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str})"
+        if departure.cancelled:
+            line = cancelled(line)
+        self.lines.append(line)
 
 
 class ConsoleTablePrinter:
@@ -80,12 +95,20 @@ class ConsoleTablePrinter:
             "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
         )
 
-        self.table.add_row(
-            departure.train_type,
-            cyan(departure.platform),
-            f"{cyan(departure.time_left_minutes)} min",
-            f"{green(act_dep_time_str)}{delay_str}",
-        )
+        if departure.cancelled:
+            self.table.add_row(
+                cancelled(departure.train_type),
+                cancelled(departure.platform),
+                cancelled(f"{departure.time_left_minutes} min"),
+                cancelled(f"{act_dep_time_str}{delay_str}"),
+            )
+        else:
+            self.table.add_row(
+                departure.train_type,
+                cyan(departure.platform),
+                f"{cyan(departure.time_left_minutes)} min",
+                f"{green(act_dep_time_str)}{delay_str}",
+            )
 
 
 class PixelClockPrinter:

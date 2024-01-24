@@ -28,6 +28,7 @@ class Departure:
     planned_departure_time: datetime
     _actual_departure_time: InitVar[Optional[datetime]] = None
     actual_departure_time: datetime = field(init=False)
+    cancelled: bool = False
 
     def __post_init__(self, _actual_departure_time: Optional[datetime]) -> None:
         self.actual_departure_time = (
@@ -76,6 +77,7 @@ def get_departures(
 
         track = origin.get("actualTrack", origin.get("plannedTrack", "?"))
 
+        cancelled = trip.get("cancelled", False)
         planned_departure_time = datetime.strptime(
             origin["plannedDateTime"], DATETIME_FORMAT_STRING
         )
@@ -93,6 +95,7 @@ def get_departures(
             platform=track,
             planned_departure_time=planned_departure_time,
             _actual_departure_time=actual_departure_time,
+            cancelled=cancelled,
         )
         if departure.time_left_minutes < 0:
             continue

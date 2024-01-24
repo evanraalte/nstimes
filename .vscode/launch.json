@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "NSUA",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/nstimes/main.py",
+            "console": "integratedTerminal",
+            "args": ["journey", "--start", "Utrecht Centraal", "--end", "Amersfoort Centraal"]
+        },
+        {
+            "name": "NSUA Table",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/nstimes/main.py",
+            "console": "integratedTerminal",
+            "args": ["journey", "--start", "Utrecht Centraal", "--end", "Amersfoort Centraal", "--printer-choice", "table"]
+        }
+    ]
+}
