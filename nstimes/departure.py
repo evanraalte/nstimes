@@ -26,19 +26,35 @@ class Departure:
     train_type: str
     platform: str
     planned_departure_time: datetime
+    planned_destination_time: datetime
     _actual_departure_time: InitVar[Optional[datetime]] = None
+    _actual_destination_time: InitVar[Optional[datetime]] = None
     actual_departure_time: datetime = field(init=False)
     cancelled: bool = False
 
-    def __post_init__(self, _actual_departure_time: Optional[datetime]) -> None:
+    def __post_init__(
+        self,
+        _actual_departure_time: Optional[datetime],
+        _actual_destination_time: Optional[datetime],
+    ) -> None:
         self.actual_departure_time = (
             _actual_departure_time or self.planned_departure_time
         )
 
+        self.actual_destination_time = (
+            _actual_destination_time or self.planned_destination_time
+        )
+
     @computed_field  # type: ignore
     @property
-    def delay_minutes(self) -> int:
+    def delay_minutes_departure(self) -> int:
         delay = self.actual_departure_time - self.planned_departure_time
+        return int(delay.total_seconds() / 60)
+
+    @computed_field  # type: ignore
+    @property
+    def delay_minutes_arrival(self) -> int:
+        delay = self.actual_destination_time - self.planned_destination_time
         return int(delay.total_seconds() / 60)
 
     @computed_field  # type: ignore
@@ -74,18 +90,27 @@ def get_departures(
     for trip in trips:
         trip = trip["legs"][0]
         origin = trip["origin"]
-
+        destination = trip["destination"]
         track = origin.get("actualTrack", origin.get("plannedTrack", "?"))
 
         cancelled = trip.get("cancelled", False)
+
         planned_departure_time = datetime.strptime(
             origin["plannedDateTime"], DATETIME_FORMAT_STRING
         )
-
         actual_departure_time = origin.get("actualDateTime")
         if actual_departure_time is not None:
             actual_departure_time = datetime.strptime(
                 actual_departure_time, DATETIME_FORMAT_STRING
+            )
+
+        planned_destination_time = datetime.strptime(
+            destination["plannedDateTime"], DATETIME_FORMAT_STRING
+        )
+        actual_destination_time = destination.get("actualDateTime")
+        if actual_destination_time is not None:
+            actual_destination_time = datetime.strptime(
+                actual_destination_time, DATETIME_FORMAT_STRING
             )
 
         train_type = trip["product"]["categoryCode"]
@@ -95,6 +120,8 @@ def get_departures(
             platform=track,
             planned_departure_time=planned_departure_time,
             _actual_departure_time=actual_departure_time,
+            planned_destination_time=planned_destination_time,
+            _actual_destination_time=actual_destination_time,
             cancelled=cancelled,
         )
         if departure.time_left_minutes < 0:

@@ -60,10 +60,19 @@ class ConsolePrinter:
 
     def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
-        delay_str = (
-            "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
+        act_arr_time_str = departure.planned_destination_time.strftime("%H:%M")
+        delay_str_departure = (
+            ""
+            if departure.delay_minutes_departure == 0
+            else red(f"+{departure.delay_minutes_departure}")
         )
-        line = f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str})"
+        delay_str_arrival = (
+            ""
+            if departure.delay_minutes_arrival == 0
+            else red(f"+{departure.delay_minutes_arrival}")
+        )
+
+        line = f"{departure.train_type:<3s} p.{departure.platform:>3s} in {departure.calc_time_left_minutes():>2d} min ({act_dep_time_str}{delay_str_departure}) -> ({act_arr_time_str}{delay_str_departure})"
         if departure.cancelled:
             line = cancelled(line)
         self.lines.append(line)
@@ -76,6 +85,7 @@ class ConsoleTablePrinter:
             Column("Platform", justify="right"),
             Column("Leaves in", justify="right"),
             Column("Departure time", justify="right"),
+            Column("Arrival time", justify="right"),
         )
 
     def generate_output(self) -> None:
@@ -91,8 +101,17 @@ class ConsoleTablePrinter:
 
     def add_departure(self, departure: Departure) -> None:
         act_dep_time_str = departure.planned_departure_time.strftime("%H:%M")
-        delay_str = (
-            "" if departure.delay_minutes == 0 else red(f"+{departure.delay_minutes}")
+        delay_str_departure = (
+            ""
+            if departure.delay_minutes_departure == 0
+            else red(f"+{departure.delay_minutes_departure}")
+        )
+
+        act_arr_time_str = departure.planned_destination_time.strftime("%H:%M")
+        delay_str_arrival = (
+            ""
+            if departure.delay_minutes_arrival == 0
+            else red(f"+{departure.delay_minutes_arrival}")
         )
 
         if departure.cancelled:
@@ -100,14 +119,16 @@ class ConsoleTablePrinter:
                 cancelled(departure.train_type),
                 cancelled(departure.platform),
                 cancelled(f"{departure.time_left_minutes} min"),
-                cancelled(f"{act_dep_time_str}{delay_str}"),
+                cancelled(f"{act_dep_time_str}{delay_str_departure}"),
+                cancelled(f"{act_arr_time_str}{delay_str_arrival}"),
             )
         else:
             self.table.add_row(
                 departure.train_type,
                 cyan(departure.platform),
                 f"{cyan(departure.time_left_minutes)} min",
-                f"{green(act_dep_time_str)}{delay_str}",
+                f"{green(act_dep_time_str)}{delay_str_departure}",
+                f"{green(act_arr_time_str)}{delay_str_arrival}",
             )
 
 
@@ -118,7 +139,9 @@ class PixelClockPrinter:
                 "text": [
                     {
                         "t": f"{departure.actual_departure_time.strftime('%H:%M')}",
-                        "c": "FFFFFF" if departure.delay_minutes == 0 else "FF0000",
+                        "c": "FFFFFF"
+                        if departure.delay_minutes_departure == 0
+                        else "FF0000",
                     },
                     {"t": f"{departure.platform}", "c": "00FF00"},
                 ],

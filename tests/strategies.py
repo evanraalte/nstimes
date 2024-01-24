@@ -22,14 +22,20 @@ delay_strategy: st.SearchStrategy[datetime] = st.integers(
 
 @st.composite
 def departure_strategy(draw: st.DrawFn) -> st.SearchStrategy[Departure]:
-    planned = draw(time_strategy)
+    planned_departure_time = draw(time_strategy)
+
     time_difference_seconds = draw(st.integers(min_value=1, max_value=3600))
-    actual = planned + timedelta(seconds=time_difference_seconds)
+    actual_departure_time = planned_departure_time + timedelta(
+        seconds=time_difference_seconds
+    )
+
     return Departure(
         train_type="SPR",
         platform="14b",
-        planned_departure_time=planned,
-        _actual_departure_time=actual,
+        planned_departure_time=planned_departure_time,
+        _actual_departure_time=actual_departure_time,
+        planned_destination_time=planned_departure_time + timedelta(minutes=30),
+        _actual_destination_time=actual_departure_time + timedelta(minutes=30),
     )
 
 

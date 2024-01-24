@@ -13,7 +13,14 @@ from nstimes.departure import Departure
 def mocked_departures(
     start: str, end: str, rdc3339_datetime: str, token: str, max_len: Optional[int]
 ) -> list[Departure]:
-    base = [Departure("SPR", "14b", datetime.now())]
+    base = [
+        Departure(
+            "SPR",
+            "14b",
+            planned_departure_time=datetime.now(),
+            planned_destination_time=datetime.now(),
+        )
+    ]
     if max_len:
         return max_len * base
     else:
