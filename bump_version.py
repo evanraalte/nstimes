@@ -10,9 +10,12 @@ def increment_patch_version(version: str) -> str:
     major, minor, patch = map(int, version.split("."))
     return f"{major}.{minor}.{patch + 1}"
 
+
 # Set up argument parser
-parser = argparse.ArgumentParser(description="Increment patch version or set a specific version.")
-parser.add_argument('--version', type=str, help='Set a specific version (e.g., 1.2.3).')
+parser = argparse.ArgumentParser(
+    description="Increment patch version or set a specific version."
+)
+parser.add_argument("--version", type=str, help="Set a specific version (e.g., 1.2.3).")
 
 # Parse arguments
 args = parser.parse_args()
