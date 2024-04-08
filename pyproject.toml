@@ -23,7 +23,7 @@ pydantic = "^2.4.2"
 nstimes = "nstimes.main:app"
 
 [tool.poetry.dependencies.typer]
-version = "^0.9.0"
+version = ">=0.9,<0.13"
 extras = [ "all",]
 
 [tool.poetry.group.test.dependencies]
